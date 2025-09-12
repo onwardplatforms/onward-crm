@@ -15,10 +15,11 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    // Get all users in the current workspace through the UserWorkspace join table
+    // Get all active users in the current workspace through the UserWorkspace join table
     const userWorkspaces = await prisma.userWorkspace.findMany({
       where: {
         workspaceId,
+        removedAt: null, // Only active members
       },
       include: {
         user: {

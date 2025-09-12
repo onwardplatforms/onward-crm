@@ -22,11 +22,12 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Verify user has access to this workspace
+    // Verify user has active access to this workspace
     const userWorkspace = await prisma.userWorkspace.findFirst({
       where: {
         userId,
-        workspaceId
+        workspaceId,
+        removedAt: null // Must be active member
       },
       include: {
         workspace: true

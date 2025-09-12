@@ -24,6 +24,7 @@ import Link from "next/link";
 import { ContactForm } from "@/components/forms/contact-form";
 import { toast } from "sonner";
 import { formatPhoneNumber } from "@/lib/phone";
+import { AssignedUserDisplay } from "@/components/assigned-user-display";
 
 export default function ContactsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,6 +33,7 @@ export default function ContactsPage() {
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<any>(null);
+  const [workspaceId, setWorkspaceId] = useState<string>("");
 
   const fetchContacts = async () => {
     try {
@@ -58,6 +60,15 @@ export default function ContactsPage() {
 
   useEffect(() => {
     fetchContacts();
+    // Fetch current workspace
+    fetch("/api/workspaces")
+      .then(res => res.json())
+      .then(data => {
+        if (data.currentWorkspaceId) {
+          setWorkspaceId(data.currentWorkspaceId);
+        }
+      })
+      .catch(console.error);
   }, []);
 
   const handleEdit = (contact: any) => {
@@ -245,13 +256,10 @@ export default function ContactsPage() {
                         })()}
                       </TableCell>
                       <TableCell>
-                        {contact.assignedTo ? (
-                          <span className="text-sm">
-                            {contact.assignedTo.name || contact.assignedTo.email}
-                          </span>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">Unassigned</span>
-                        )}
+                        <AssignedUserDisplay 
+                          user={contact.assignedTo} 
+                          workspaceId={workspaceId}
+                        />
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>

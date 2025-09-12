@@ -88,10 +88,13 @@ model UserWorkspace {
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   role        String   @default("member") // owner, admin, member, viewer
   joinedAt    DateTime @default(now())
+  removedAt   DateTime? // Soft delete - when user was removed from workspace
+  removedById String?   // Who removed them (for audit trail)
   
   @@unique([userId, workspaceId])
   @@index([userId])
   @@index([workspaceId])
+  @@index([removedAt])
 }
 
 model WorkspaceInvite {

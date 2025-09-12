@@ -50,12 +50,31 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
     
-    // Handle "unassigned" value
-    const { assignedToId, ...restData } = body;
-    const updateData = {
-      ...restData,
-      assignedToId: assignedToId === "unassigned" ? null : assignedToId,
+    // Handle "unassigned" value and "none" for company
+    const { assignedToId, companyId, ...restData } = body;
+    
+    // Build the update data object
+    const updateData: any = {
+      ...restData
     };
+    
+    // Handle company updates (required field)
+    if (companyId) {
+      updateData.company = {
+        connect: { id: companyId }
+      };
+    }
+    
+    // Handle assignedTo updates
+    if (assignedToId === "unassigned") {
+      updateData.assignedTo = {
+        disconnect: true
+      };
+    } else if (assignedToId) {
+      updateData.assignedTo = {
+        connect: { id: assignedToId }
+      };
+    }
     
     const contact = await prisma.contact.update({
       where: { id },

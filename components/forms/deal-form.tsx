@@ -82,7 +82,7 @@ export function DealForm({
       name: deal?.name || "",
       value: deal?.value || "",
       licenses: deal?.licenses || 1,
-      stage: deal?.stage || "lead",
+      stage: deal?.stage || "prospect",
       closeDate: deal?.closeDate ? new Date(deal.closeDate) : null,
       probability: deal?.probability || 0,
       companyId: deal?.companyId || undefined,
@@ -140,7 +140,7 @@ export function DealForm({
         name: deal.name || "",
         value: deal.value || "",
         licenses: deal.licenses || 1,
-        stage: deal.stage || "lead",
+        stage: deal.stage || "prospect",
         closeDate: deal.closeDate ? new Date(deal.closeDate) : null,
         probability: deal.probability || 0,
         companyId: deal.companyId || undefined,
@@ -179,6 +179,8 @@ export function DealForm({
       const submitData = {
         ...data,
         closeDate: data.closeDate || null,
+        contactId: data.contactId === "none" ? null : data.contactId,
+        companyId: data.companyId === "none" ? null : data.companyId,
       };
 
       const response = await fetch(url, {
@@ -217,11 +219,10 @@ export function DealForm({
     if (!currentProbability || currentProbability === 0) {
       // Set default probability based on stage (matching 10% increments)
       const defaultProbabilities: Record<string, number> = {
-        lead: 10,
-        qualified: 20,
-        demo: 30,
-        trial: 50,
-        negotiation: 70,
+        prospect: 10,
+        qualified: 30,
+        demo: 50,
+        proposal: 70,
         "closed-won": 100,
         "closed-lost": 0,
       };
@@ -236,10 +237,13 @@ export function DealForm({
   const handleContactChange = (contactId: string) => {
     form.setValue("contactId", contactId);
     
-    // Find the selected contact and auto-populate their company
-    const selectedContact = allContacts.find(c => c.id === contactId);
-    if (selectedContact?.companyId) {
-      form.setValue("companyId", selectedContact.companyId);
+    // Only auto-populate company if a real contact is selected (not "none")
+    if (contactId !== "none") {
+      // Find the selected contact and auto-populate their company
+      const selectedContact = allContacts.find(c => c.id === contactId);
+      if (selectedContact?.companyId) {
+        form.setValue("companyId", selectedContact.companyId);
+      }
     }
   };
 
@@ -248,13 +252,13 @@ export function DealForm({
     form.setValue("companyId", companyId);
     
     // Filter contacts to show only those from the selected company (plus unassigned)
-    if (companyId) {
+    if (companyId && companyId !== "none") {
       const filteredContacts = allContacts.filter(
         contact => !contact.companyId || contact.companyId === companyId
       );
       setContacts(filteredContacts);
     } else {
-      // If no company selected, show all contacts
+      // If no company selected or "none" selected, show all contacts
       setContacts(allContacts);
     }
   };
@@ -441,6 +445,9 @@ export function DealForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        <SelectItem value="none">
+                          <span className="text-muted-foreground">None</span>
+                        </SelectItem>
                         {contacts.map((contact) => (
                           <SelectItem key={contact.id} value={contact.id}>
                             {contact.firstName} {contact.lastName}
@@ -480,6 +487,9 @@ export function DealForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        <SelectItem value="none">
+                          <span className="text-muted-foreground">None</span>
+                        </SelectItem>
                         {companies.map((company) => (
                           <SelectItem key={company.id} value={company.id}>
                             {company.name}

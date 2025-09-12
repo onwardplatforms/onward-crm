@@ -300,11 +300,24 @@ export function ContactForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {companies.map((company) => (
-                          <SelectItem key={company.id} value={company.id}>
-                            {company.name}
-                          </SelectItem>
-                        ))}
+                        {companies.length === 0 ? (
+                          <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                            <p>No companies yet.</p>
+                            <button
+                              type="button"
+                              onClick={() => setCompanyFormOpen(true)}
+                              className="hover:text-foreground transition-colors cursor-pointer"
+                            >
+                              Create a company first →
+                            </button>
+                          </div>
+                        ) : (
+                          companies.map((company) => (
+                            <SelectItem key={company.id} value={company.id}>
+                              {company.name}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                     <Button

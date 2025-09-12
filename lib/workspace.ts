@@ -13,7 +13,8 @@ export async function getCurrentWorkspace(userId: string, sessionId?: string) {
       const userWorkspace = await prisma.userWorkspace.findFirst({
         where: {
           userId,
-          workspaceId: session.currentWorkspaceId
+          workspaceId: session.currentWorkspaceId,
+          removedAt: null // Only active membership
         },
         include: {
           workspace: true
@@ -26,9 +27,12 @@ export async function getCurrentWorkspace(userId: string, sessionId?: string) {
     }
   }
   
-  // Fall back to user's first workspace
+  // Fall back to user's first active workspace
   const userWorkspace = await prisma.userWorkspace.findFirst({
-    where: { userId },
+    where: { 
+      userId,
+      removedAt: null // Only active memberships
+    },
     include: { workspace: true },
     orderBy: { joinedAt: 'asc' }
   });
@@ -93,7 +97,10 @@ export async function createWorkspaceForUser(userId: string, workspaceName?: str
 
 export async function getUserWorkspaces(userId: string) {
   const userWorkspaces = await prisma.userWorkspace.findMany({
-    where: { userId },
+    where: { 
+      userId,
+      removedAt: null // Only active memberships
+    },
     include: { workspace: true },
     orderBy: { joinedAt: 'asc' }
   });

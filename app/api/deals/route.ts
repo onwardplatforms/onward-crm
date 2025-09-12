@@ -58,19 +58,45 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Handle "unassigned" value
-    const { assignedToId, ...restData } = body;
-    const dealData = {
+    // Handle "unassigned" value and "none" for company/contact
+    const { assignedToId, companyId, contactId, ...restData } = body;
+    
+    // Build the data object conditionally
+    const createData: any = {
       ...restData,
-      userId,
-      workspaceId,
-      assignedToId: assignedToId === "unassigned" ? null : assignedToId,
+      user: {
+        connect: { id: userId }
+      },
+      workspace: {
+        connect: { id: workspaceId }
+      }
     };
+    
+    // Only add company if it's not "none" and has a value
+    if (companyId && companyId !== "none") {
+      createData.company = {
+        connect: { id: companyId }
+      };
+    }
+    
+    // Only add contact if it's not "none" and has a value
+    if (contactId && contactId !== "none") {
+      createData.contact = {
+        connect: { id: contactId }
+      };
+    }
+    
+    // Only add assignedTo if it's not "unassigned" and has a value
+    if (assignedToId && assignedToId !== "unassigned") {
+      createData.assignedTo = {
+        connect: { id: assignedToId }
+      };
+    }
     
     // Create deal and initial transition in a transaction
     const deal = await prisma.$transaction(async (tx) => {
       const newDeal = await tx.deal.create({
-        data: dealData,
+        data: createData,
         include: {
           company: true,
           contact: true,

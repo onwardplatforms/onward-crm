@@ -57,17 +57,36 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Handle "unassigned" value
-    const { assignedToId, ...restData } = body;
-    const contactData = {
+    // Handle "unassigned" value and "none" for company
+    const { assignedToId, companyId, ...restData } = body;
+    
+    // Build the data object conditionally
+    const createData: any = {
       ...restData,
-      userId,
-      workspaceId,
-      assignedToId: assignedToId === "unassigned" ? null : assignedToId,
+      user: {
+        connect: { id: userId }
+      },
+      workspace: {
+        connect: { id: workspaceId }
+      }
     };
     
+    // Add company (required field)
+    if (companyId) {
+      createData.company = {
+        connect: { id: companyId }
+      };
+    }
+    
+    // Only add assignedTo if it's not "unassigned" and has a value
+    if (assignedToId && assignedToId !== "unassigned") {
+      createData.assignedTo = {
+        connect: { id: assignedToId }
+      };
+    }
+    
     const contact = await prisma.contact.create({
-      data: contactData,
+      data: createData,
       include: {
         company: true,
         assignedTo: {
@@ -81,10 +100,17 @@ export async function POST(request: NextRequest) {
     });
     
     return NextResponse.json(contact, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating contact:", error);
+    console.error("Error details:", error.message);
+    if (error.code === 'P2003') {
+      return NextResponse.json(
+        { error: "Invalid company or assigned user reference" },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
-      { error: "Failed to create contact" },
+      { error: error.message || "Failed to create contact" },
       { status: 500 }
     );
   }

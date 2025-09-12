@@ -32,10 +32,11 @@ export async function GET(
       );
     }
     
-    // Get all workspace members
+    // Get all workspace members (excluding soft-deleted)
     const members = await prisma.userWorkspace.findMany({
       where: {
-        workspaceId
+        workspaceId,
+        removedAt: null // Only active members
       },
       include: {
         user: {
@@ -101,11 +102,12 @@ export async function DELETE(
       );
     }
     
-    // Get current user's role
+    // Get current user's role (must be active member)
     const currentUserWorkspace = await prisma.userWorkspace.findFirst({
       where: {
         userId,
-        workspaceId
+        workspaceId,
+        removedAt: null
       }
     });
     
@@ -130,13 +132,17 @@ export async function DELETE(
         );
       }
       
-      // Members can leave anytime
-      await prisma.userWorkspace.delete({
+      // Members can leave anytime - soft delete
+      await prisma.userWorkspace.update({
         where: {
           userId_workspaceId: {
             userId: memberId,
             workspaceId
           }
+        },
+        data: {
+          removedAt: new Date(),
+          removedById: userId
         }
       });
       
@@ -186,13 +192,17 @@ export async function DELETE(
         );
       }
       
-      // Remove the member
-      await prisma.userWorkspace.delete({
+      // Remove the member - soft delete
+      await prisma.userWorkspace.update({
         where: {
           userId_workspaceId: {
             userId: memberId,
             workspaceId
           }
+        },
+        data: {
+          removedAt: new Date(),
+          removedById: userId
         }
       });
       

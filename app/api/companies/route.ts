@@ -66,15 +66,27 @@ export async function POST(request: NextRequest) {
     
     // Handle "unassigned" value
     const { assignedToId, ...restData } = body;
-    const companyData = {
+    
+    // Build the data object conditionally
+    const createData: any = {
       ...restData,
-      userId,
-      workspaceId,
-      assignedToId: assignedToId === "unassigned" ? null : assignedToId,
+      user: {
+        connect: { id: userId }
+      },
+      workspace: {
+        connect: { id: workspaceId }
+      }
     };
     
+    // Only add assignedTo if it's not "unassigned" and has a value
+    if (assignedToId && assignedToId !== "unassigned") {
+      createData.assignedTo = {
+        connect: { id: assignedToId }
+      };
+    }
+    
     const company = await prisma.company.create({
-      data: companyData,
+      data: createData,
       include: {
         assignedTo: {
           select: {
