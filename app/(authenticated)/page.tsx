@@ -255,7 +255,7 @@ export default function Dashboard() {
             <CardDescription>Total pipeline value over last 6 months</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={pipelineTrend}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -270,7 +270,10 @@ export default function Dashboard() {
                   />
                   <Bar
                     dataKey="value"
-                    fill="hsl(var(--chart-1))"
+                    style={{
+                      fill: "hsl(var(--foreground))",
+                      opacity: 0.9,
+                    } as React.CSSProperties}
                     radius={[12, 12, 0, 0]}
                   />
                 </BarChart>
@@ -286,7 +289,7 @@ export default function Dashboard() {
             <CardDescription>Weighted pipeline by probability and close date</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={forecast}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -299,7 +302,14 @@ export default function Dashboard() {
                     content={<ChartTooltipContent />}
                     formatter={(value: any) => formatCurrency(value)}
                   />
-                  <Bar dataKey="weighted" fill="hsl(var(--chart-1))" radius={[12, 12, 0, 0]} />
+                  <Bar 
+                    dataKey="weighted" 
+                    style={{
+                      fill: "hsl(var(--foreground))",
+                      opacity: 0.9,
+                    } as React.CSSProperties}
+                    radius={[12, 12, 0, 0]} 
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
@@ -449,13 +459,28 @@ export default function Dashboard() {
             {/* Group deals by owner and calculate metrics */}
             {Object.entries(
               deals.reduce((acc, deal) => {
-                const owner = deal.ownerId || 'unassigned';
+                const owner = deal.assignedToId || deal.userId || 'unassigned';
                 if (!acc[owner]) {
+                  // First, try to get the name from the deal's assignedTo object
+                  // Then try to find the user in the users list
+                  // Finally fall back to 'Unassigned'
+                  let ownerName = 'Unassigned';
+                  if (deal.assignedTo?.name) {
+                    ownerName = deal.assignedTo.name;
+                  } else if (deal.user?.name) {
+                    ownerName = deal.user.name;
+                  } else {
+                    const foundUser = users.find(u => u.id === owner);
+                    if (foundUser?.name) {
+                      ownerName = foundUser.name;
+                    }
+                  }
+                  
                   acc[owner] = {
                     closedWon: 0,
                     totalValue: 0,
                     activitiesCount: 0,
-                    name: users.find(u => u.id === owner)?.name || 'Unassigned',
+                    name: ownerName,
                   };
                 }
                 if (deal.stage === 'closed-won') {
