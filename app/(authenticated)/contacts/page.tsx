@@ -18,25 +18,37 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, MoreHorizontal, Pencil, Trash, ExternalLink } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Pencil, Trash, ExternalLink, ArrowUpRight } from "lucide-react";
+import { format } from "date-fns";
+import Link from "next/link";
 import { ContactForm } from "@/components/forms/contact-form";
 import { toast } from "sonner";
 
 export default function ContactsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [contacts, setContacts] = useState<any[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<any>(null);
 
   const fetchContacts = async () => {
     try {
-      const response = await fetch("/api/contacts");
-      if (!response.ok) throw new Error("Failed to fetch contacts");
-      const data = await response.json();
-      setContacts(data);
+      const [contactsRes, activitiesRes] = await Promise.all([
+        fetch("/api/contacts"),
+        fetch("/api/activities")
+      ]);
+      
+      if (!contactsRes.ok) throw new Error("Failed to fetch contacts");
+      if (!activitiesRes.ok) throw new Error("Failed to fetch activities");
+      
+      const contactsData = await contactsRes.json();
+      const activitiesData = await activitiesRes.json();
+      
+      setContacts(contactsData);
+      setActivities(Array.isArray(activitiesData) ? activitiesData : []);
     } catch (error) {
-      console.error("Error fetching contacts:", error);
+      console.error("Error fetching data:", error);
       toast.error("Failed to load contacts");
     } finally {
       setLoading(false);
@@ -86,6 +98,19 @@ export default function ContactsPage() {
       contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.company?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  // Helper function to get last contacted date for a contact
+  const getLastContactedDate = (contactId: string) => {
+    const contactActivities = activities.filter(a => a.contactId === contactId);
+    if (contactActivities.length === 0) return null;
+    
+    // Sort by date descending and return the most recent
+    const sorted = contactActivities.sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+    
+    return sorted[0];
+  };
 
   return (
     <div className="space-y-6">
@@ -125,6 +150,7 @@ export default function ContactsPage() {
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Title</TableHead>
+                  <TableHead>Last Contacted</TableHead>
                   <TableHead>Assigned To</TableHead>
                   <TableHead className="w-[70px]">Actions</TableHead>
                 </TableRow>
@@ -132,7 +158,7 @@ export default function ContactsPage() {
               <TableBody>
                 {filteredContacts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground">
                       {searchTerm
                         ? "No contacts found matching your search."
                         : "No contacts found. Add your first contact to get started."}
@@ -178,6 +204,27 @@ export default function ContactsPage() {
                         )}
                       </TableCell>
                       <TableCell>{contact.title || <span className="text-muted-foreground">-</span>}</TableCell>
+                      <TableCell>
+                        {(() => {
+                          const lastActivity = getLastContactedDate(contact.id);
+                          if (!lastActivity) {
+                            return <span className="text-muted-foreground">Never</span>;
+                          }
+                          return (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm">
+                                {format(new Date(lastActivity.date), "MMM d, yyyy")}
+                              </span>
+                              <Link 
+                                href={`/activities?contactId=${contact.id}`}
+                                className="text-muted-foreground hover:text-foreground transition-colors"
+                              >
+                                <ArrowUpRight className="h-3 w-3" />
+                              </Link>
+                            </div>
+                          );
+                        })()}
+                      </TableCell>
                       <TableCell>
                         {contact.assignedTo ? (
                           <span className="text-sm">

@@ -1,11 +1,10 @@
 export const DEAL_STAGES = [
-  { value: 'lead', label: 'Lead' },
-  { value: 'qualified', label: 'Qualified' },
-  { value: 'demo', label: 'Demo' },
-  { value: 'trial', label: 'Trial' },
-  { value: 'negotiation', label: 'Negotiation' },
-  { value: 'closed-won', label: 'Closed Won' },
-  { value: 'closed-lost', label: 'Closed Lost' },
+  { value: 'prospect', label: 'Prospect', description: 'Initial lead, needs qualification' },
+  { value: 'qualified', label: 'Qualified', description: 'Budget, authority, need, and timeline confirmed' },
+  { value: 'demo', label: 'Demo', description: 'Product demonstration scheduled/completed' },
+  { value: 'proposal', label: 'Proposal', description: 'Pricing and terms presented' },
+  { value: 'closed-won', label: 'Closed Won', description: 'Deal successfully closed' },
+  { value: 'closed-lost', label: 'Closed Lost', description: 'Deal lost or disqualified' },
 ] as const;
 
 export const ACTIVITY_TYPES = [

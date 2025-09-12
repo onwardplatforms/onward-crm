@@ -399,12 +399,17 @@ export default function DealsPage() {
                       </CardTitle>
                       <Badge variant="secondary">{stageDeals.length}</Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground mb-1">
                       {formatCompactCurrency(stageValue)}
                     </p>
+                    {stage.description && (
+                      <p className="text-xs text-muted-foreground/70">
+                        {stage.description}
+                      </p>
+                    )}
                   </CardHeader>
                   <CardContent className="flex-1 overflow-hidden px-3 pt-0 pb-3">
-                    <div className="space-y-3 h-full overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                    <div className="space-y-3 h-full overflow-y-auto px-1 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
                       {/* Drop zone for first position */}
                       {stageDeals.length > 0 && (
                         <div 
@@ -440,7 +445,7 @@ export default function DealsPage() {
                               onDrop={(e) => handleDrop(e, stage.value)}
                               onDoubleClick={() => handleEdit(deal)}
                               className={cn(
-                                "group rounded-lg border p-3 cursor-grab hover:shadow-md transition-all hover:scale-[1.02] bg-background relative",
+                                "group rounded-lg border p-3 cursor-grab hover:shadow-lg transition-shadow bg-muted/50 relative",
                                 draggedDeal === deal.id && "opacity-0"
                               )}
                             >
@@ -647,7 +652,7 @@ export default function DealsPage() {
                                 onDrop={(e) => handleDrop(e, 'closed-won')}
                                 onDoubleClick={() => handleEdit(deal)}
                                 className={cn(
-                                  "group rounded-lg border p-3 cursor-grab hover:shadow-md transition-all hover:scale-[1.02] bg-background relative",
+                                  "group rounded-lg border p-3 cursor-grab hover:shadow-lg transition-shadow bg-muted/50 relative",
                                   draggedDeal === deal.id && "opacity-0"
                                 )}
                               >
@@ -705,7 +710,7 @@ export default function DealsPage() {
                                 onDrop={(e) => handleDrop(e, 'closed-lost')}
                                 onDoubleClick={() => handleEdit(deal)}
                                 className={cn(
-                                  "group rounded-lg border p-3 cursor-grab hover:shadow-md transition-all hover:scale-[1.02] bg-background relative opacity-60",
+                                  "group rounded-lg border p-3 cursor-grab hover:shadow-lg transition-shadow bg-background relative opacity-60",
                                   draggedDeal === deal.id && "opacity-0"
                                 )}
                               >
