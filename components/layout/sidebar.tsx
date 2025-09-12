@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -60,6 +61,13 @@ export function Sidebar() {
   return (
     <div className="flex h-full w-64 flex-col border-r bg-card">
       <div className="flex h-16 items-center px-6 border-b">
+        <Image 
+          src="/logo.svg" 
+          alt="Onward CRM Logo" 
+          width={24} 
+          height={24} 
+          className="mr-2 rounded-full"
+        />
         <h1 className="text-xl font-bold">Onward CRM</h1>
       </div>
       <div className="border-b px-3 py-3">
