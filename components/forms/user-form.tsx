@@ -30,63 +30,64 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { phoneSchema, formatPhoneOnChange, cleanPhoneNumber } from "@/lib/phone";
 
-const teamMemberSchema = z.object({
+const userSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email").min(1, "Email is required"),
   title: z.string().optional(),
-  phone: z.string().optional(),
+  phone: phoneSchema,
   role: z.enum(["admin", "member"]),
   isActive: z.boolean().default(true),
 });
 
-type TeamMemberFormData = z.infer<typeof teamMemberSchema>;
+type UserFormData = z.infer<typeof userSchema>;
 
-interface TeamMemberFormProps {
+interface UserFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  member?: any;
+  user?: any;
   onSuccess?: () => void;
 }
 
-export function TeamMemberForm({
+export function UserForm({
   open,
   onOpenChange,
-  member,
+  user,
   onSuccess,
-}: TeamMemberFormProps) {
+}: UserFormProps) {
   const [loading, setLoading] = useState(false);
 
-  const form = useForm<TeamMemberFormData>({
-    resolver: zodResolver(teamMemberSchema),
+  const form = useForm<UserFormData>({
+    resolver: zodResolver(userSchema),
     defaultValues: {
-      name: member?.name || "",
-      email: member?.email || "",
-      title: member?.title || "",
-      phone: member?.phone || "",
-      role: member?.role || "member",
-      isActive: member?.isActive ?? true,
+      name: user?.name || "",
+      email: user?.email || "",
+      title: user?.title || "",
+      phone: user?.phone || "",
+      role: user?.role || "member",
+      isActive: user?.isActive ?? true,
     },
   });
 
   useEffect(() => {
-    if (member) {
+    if (user) {
       form.reset({
-        name: member.name || "",
-        email: member.email || "",
-        title: member.title || "",
-        phone: member.phone || "",
-        role: member.role || "member",
-        isActive: member.isActive ?? true,
+        name: user.name || "",
+        email: user.email || "",
+        title: user.title || "",
+        phone: user.phone || "",
+        role: user.role || "member",
+        isActive: user.isActive ?? true,
       });
     }
-  }, [member, form]);
+  }, [user, form]);
 
-  const onSubmit = async (data: TeamMemberFormData) => {
+  const onSubmit = async (data: UserFormData) => {
     setLoading(true);
     try {
-      const url = member ? `/api/team/${member.id}` : "/api/team";
-      const method = member ? "PUT" : "POST";
+      const url = user ? `/api/users/${user.id}` : "/api/users";
+      const method = user ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,
@@ -97,11 +98,11 @@ export function TeamMemberForm({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save team member");
+        throw new Error("Failed to save user");
       }
 
       toast.success(
-        member ? "Team member updated successfully" : "Team member added successfully"
+        user ? "User updated successfully" : "User added successfully"
       );
       
       form.reset();
@@ -109,7 +110,7 @@ export function TeamMemberForm({
       onSuccess?.();
     } catch (error) {
       console.error("Error saving team member:", error);
-      toast.error("Failed to save team member");
+      toast.error("Failed to save user");
     } finally {
       setLoading(false);
     }
@@ -120,12 +121,12 @@ export function TeamMemberForm({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {member ? "Edit Team Member" : "Add Team Member"}
+            {user ? "Edit User" : "Add User"}
           </DialogTitle>
           <DialogDescription>
-            {member
-              ? "Update the team member information below."
-              : "Enter the details for the new team member."}
+            {user
+              ? "Update the user information below."
+              : "Enter the details for the new user."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -184,7 +185,14 @@ export function TeamMemberForm({
                   <FormItem>
                     <FormLabel>Phone</FormLabel>
                     <FormControl>
-                      <Input placeholder="+1 (555) 000-0000" {...field} />
+                      <Input 
+                        placeholder="(555) 555-5555" 
+                        {...field}
+                        onChange={(e) => {
+                          const formatted = formatPhoneOnChange(e.target.value);
+                          field.onChange(formatted);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -229,7 +237,7 @@ export function TeamMemberForm({
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? "Saving..." : member ? "Update" : "Add"}
+                {loading ? "Saving..." : user ? "Update" : "Add"}
               </Button>
             </div>
           </form>

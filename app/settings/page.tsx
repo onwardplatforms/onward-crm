@@ -1,13 +1,89 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Shield, Bell, Palette } from "lucide-react";
+import { toast } from "sonner";
+import { formatPhoneOnChange } from "@/lib/phone";
 
 export default function SettingsPage() {
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [profileData, setProfileData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    title: "",
+  });
+  const [loading, setLoading] = useState(false);
+
+  const fetchCurrentUser = async () => {
+    try {
+      // For now, get the temp user - later this will be from auth
+      const response = await fetch("/api/users");
+      if (response.ok) {
+        const users = await response.json();
+        const tempUser = users.find((u: any) => u.id === "temp-user-id") || users[0];
+        if (tempUser) {
+          setCurrentUser(tempUser);
+          setProfileData({
+            name: tempUser.name || "",
+            email: tempUser.email || "",
+            phone: tempUser.phone || "",
+            title: tempUser.title || "",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching current user:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCurrentUser();
+  }, []);
+
+  const handleProfileSave = async () => {
+    if (!currentUser) return;
+    
+    setLoading(true);
+    try {
+      // Only send the fields we want to update, not password
+      const { password, _count, ...userWithoutPassword } = currentUser;
+      const updateData = {
+        ...userWithoutPassword,
+        ...profileData,
+      };
+      
+      console.log("Updating profile with data:", updateData);
+      
+      const response = await fetch(`/api/users/${currentUser.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("Profile update error:", error);
+        throw new Error(error.error || "Failed to update profile");
+      }
+      
+      toast.success("Profile updated successfully");
+      fetchCurrentUser(); // Refresh the data
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -46,29 +122,50 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" placeholder="John" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" placeholder="Doe" />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input 
+                  id="name" 
+                  placeholder="John Doe" 
+                  value={profileData.name}
+                  onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="john@example.com" />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="john@example.com" 
+                  value={profileData.email}
+                  onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" type="tel" placeholder="+1 (555) 000-0000" />
+                <Input 
+                  id="phone" 
+                  type="tel" 
+                  placeholder="(555) 555-5555" 
+                  value={profileData.phone}
+                  onChange={(e) => {
+                    const formatted = formatPhoneOnChange(e.target.value);
+                    setProfileData({ ...profileData, phone: formatted });
+                  }}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="title">Job Title</Label>
-                <Input id="title" placeholder="Sales Manager" />
+                <Input 
+                  id="title" 
+                  placeholder="Sales Manager" 
+                  value={profileData.title}
+                  onChange={(e) => setProfileData({ ...profileData, title: e.target.value })}
+                />
               </div>
-              <Button>Save Changes</Button>
+              <Button onClick={handleProfileSave} disabled={loading}>
+                {loading ? "Saving..." : "Save Changes"}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>

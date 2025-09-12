@@ -16,7 +16,7 @@ import {
   Plus, Search, Mail, Phone, UserCheck, UserX, 
   MoreHorizontal, Pencil, Shield, User 
 } from "lucide-react";
-import { TeamMemberForm } from "@/components/forms/team-member-form";
+import { UserForm } from "@/components/forms/user-form";
 import { toast } from "sonner";
 
 export default function TeamPage() {
@@ -28,7 +28,7 @@ export default function TeamPage() {
 
   const fetchTeamMembers = async () => {
     try {
-      const response = await fetch("/api/team");
+      const response = await fetch("/api/users");
       
       if (response.ok) {
         const data = await response.json();
@@ -62,7 +62,7 @@ export default function TeamPage() {
 
   const handleToggleStatus = async (member: any) => {
     try {
-      const response = await fetch(`/api/team/${member.id}`, {
+      const response = await fetch(`/api/users/${member.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -198,6 +198,7 @@ export default function TeamPage() {
                             <div className="flex gap-3 pt-2 text-xs text-muted-foreground">
                               <span>{member._count.assignedContacts || 0} contacts</span>
                               <span>{member._count.assignedDeals || 0} deals</span>
+                              <span>{member._count.assignedCompanies || 0} companies</span>
                             </div>
                           )}
                         </div>
@@ -237,10 +238,10 @@ export default function TeamPage() {
         </CardContent>
       </Card>
 
-      <TeamMemberForm
+      <UserForm
         open={formOpen}
         onOpenChange={handleFormClose}
-        member={selectedMember}
+        user={selectedMember}
         onSuccess={handleFormSuccess}
       />
     </div>

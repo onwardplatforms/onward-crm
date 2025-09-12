@@ -149,7 +149,7 @@ export default function ContactsPage() {
                         {contact.email && (
                           <a
                             href={`mailto:${contact.email}`}
-                            className="flex items-center gap-1 text-blue-600 hover:underline"
+                            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
                           >
                             <Mail className="h-3 w-3" />
                             {contact.email}
@@ -160,7 +160,7 @@ export default function ContactsPage() {
                         {contact.phone && (
                           <a
                             href={`tel:${contact.phone}`}
-                            className="flex items-center gap-1 text-blue-600 hover:underline"
+                            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
                           >
                             <Phone className="h-3 w-3" />
                             {contact.phone}

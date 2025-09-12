@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Globe, MapPin, Users, MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { Plus, Search, ArrowUpRight, MapPin, Users, MoreHorizontal, Pencil, Trash } from "lucide-react";
 import { CompanyForm } from "@/components/forms/company-form";
 import { toast } from "sonner";
 
@@ -153,10 +153,10 @@ export default function CompaniesPage() {
                             href={company.website}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-blue-600 hover:underline"
+                            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            <Globe className="h-3 w-3" />
-                            Visit
+                            {company.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
+                            <ArrowUpRight className="h-3 w-3" />
                           </a>
                         )}
                       </TableCell>

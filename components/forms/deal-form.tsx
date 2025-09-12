@@ -110,7 +110,7 @@ export function DealForm({
 
   const fetchTeamMembers = async () => {
     try {
-      const res = await fetch("/api/team");
+      const res = await fetch("/api/users");
       const data = await res.json();
       setTeamMembers(Array.isArray(data) ? data : []);
     } catch (error) {

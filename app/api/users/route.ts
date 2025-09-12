@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
           select: {
             assignedContacts: true,
             assignedDeals: true,
+            assignedCompanies: true,
           },
         },
       },

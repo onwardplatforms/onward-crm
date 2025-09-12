@@ -24,6 +24,7 @@ export async function GET(
           select: {
             assignedContacts: true,
             assignedDeals: true,
+            assignedCompanies: true,
           },
         },
       },
@@ -53,7 +54,9 @@ export async function PUT(
 ) {
   try {
     const body = await request.json();
-    const { password, ...userData } = body;
+    console.log("Received update data:", body);
+    
+    const { password, _count, createdAt, updatedAt, id, ...userData } = body;
     
     let updateData = userData;
     
@@ -62,6 +65,8 @@ export async function PUT(
       const hashedPassword = await bcrypt.hash(password, 10);
       updateData = { ...userData, password: hashedPassword };
     }
+    
+    console.log("Updating user with cleaned data:", updateData);
     
     const user = await prisma.user.update({
       where: { id: params.id },
@@ -76,6 +81,13 @@ export async function PUT(
         phone: true,
         isActive: true,
         createdAt: true,
+        _count: {
+          select: {
+            assignedContacts: true,
+            assignedDeals: true,
+            assignedCompanies: true,
+          },
+        },
       },
     });
     

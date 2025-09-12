@@ -32,12 +32,13 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { CompanyForm } from "./company-form";
+import { phoneSchema, formatPhoneOnChange } from "@/lib/phone";
 
 const contactSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
-  phone: z.string().optional(),
+  phone: phoneSchema,
   title: z.string().optional(),
   companyId: z.string().optional(),
   assignedToId: z.string().optional(),
@@ -90,7 +91,7 @@ export function ContactForm({
 
   const fetchTeamMembers = async () => {
     try {
-      const res = await fetch("/api/team");
+      const res = await fetch("/api/users");
       const data = await res.json();
       setTeamMembers(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -221,7 +222,14 @@ export function ContactForm({
                 <FormItem>
                   <FormLabel>Phone</FormLabel>
                   <FormControl>
-                    <Input placeholder="+1 (555) 000-0000" {...field} />
+                    <Input 
+                      placeholder="(555) 555-5555" 
+                      {...field}
+                      onChange={(e) => {
+                        const formatted = formatPhoneOnChange(e.target.value);
+                        field.onChange(formatted);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
