@@ -238,7 +238,7 @@ export default function DealsPage() {
 
   const handleDragOverCard = (e: React.DragEvent, dealId: string) => {
     e.preventDefault();
-    e.stopPropagation();
+    // Don't stop propagation so the card container can also get the event
     
     const rect = e.currentTarget.getBoundingClientRect();
     const midpoint = rect.top + rect.height / 2;
@@ -286,8 +286,8 @@ export default function DealsPage() {
     : 0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Deals</h2>
           <p className="text-muted-foreground">
@@ -300,7 +300,7 @@ export default function DealsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-4 mb-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Pipeline</CardTitle>
@@ -350,14 +350,14 @@ export default function DealsPage() {
         </Card>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
         <TabsList>
           <TabsTrigger value="pipeline">Pipeline View</TabsTrigger>
           <TabsTrigger value="list">List View</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="pipeline" className="mt-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-6 h-[calc(100vh-28rem)]">
+        <TabsContent value="pipeline" className="flex-1 mt-1 overflow-hidden p-1">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-6 h-full">
             {DEAL_STAGES.map((stage) => {
               const stageDeals = filteredDeals
                 .filter(d => d.stage === stage.value)
@@ -367,7 +367,7 @@ export default function DealsPage() {
               return (
                 <Card 
                   key={stage.value} 
-                  className="h-full flex flex-col transition-colors"
+                  className="h-full flex flex-col transition-colors gap-0"
                   onDragOver={(e) => {
                     handleDragOver(e);
                     e.currentTarget.classList.add("ring-2", "ring-primary");
@@ -380,7 +380,7 @@ export default function DealsPage() {
                     e.currentTarget.classList.remove("ring-2", "ring-primary");
                   }}
                 >
-                  <CardHeader className="pb-3 flex-shrink-0">
+                  <CardHeader className="pb-2 flex-shrink-0">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm font-medium">
                         {stage.label}
@@ -391,7 +391,7 @@ export default function DealsPage() {
                       {formatCompactCurrency(stageValue)}
                     </p>
                   </CardHeader>
-                  <CardContent className="flex-1 overflow-hidden p-3">
+                  <CardContent className="flex-1 overflow-hidden px-3 pt-0 pb-3">
                     <div className="space-y-2 h-full overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
                       {/* Drop zone for first position */}
                       {stageDeals.length > 0 && (
@@ -399,7 +399,6 @@ export default function DealsPage() {
                           className="h-2 relative"
                           onDragOver={(e) => {
                             e.preventDefault();
-                            e.stopPropagation();
                             setDropIndicator({ dealId: stageDeals[0].id, position: 'before' });
                           }}
                           onDragLeave={() => setDropIndicator(null)}
@@ -497,7 +496,7 @@ export default function DealsPage() {
           </div>
         </TabsContent>
         
-        <TabsContent value="list">
+        <TabsContent value="list" className="flex-1 mt-1 overflow-auto">
           <Card>
             <CardHeader>
               <div className="flex items-center space-x-2">
