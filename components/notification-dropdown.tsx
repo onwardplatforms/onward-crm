@@ -32,6 +32,7 @@ export function NotificationDropdown() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
   const [processingInvites, setProcessingInvites] = useState<Set<string>>(new Set());
+  const [inviteStatuses, setInviteStatuses] = useState<Record<string, 'accepted' | 'declined'>>({})
 
   const fetchNotifications = async () => {
     try {
@@ -107,10 +108,11 @@ export function NotificationDropdown() {
       if (response.ok) {
         const data = await response.json();
         toast.success(data.message || "Successfully joined workspace");
-        // Mark notification as read
+        // Mark notification as read and set status
         markAsRead([notification.id]);
-        // Reload to update workspaces
-        setTimeout(() => window.location.reload(), 1000);
+        setInviteStatuses(prev => ({ ...prev, [notification.id]: 'accepted' }));
+        // Reload to update workspaces after a short delay
+        setTimeout(() => window.location.reload(), 2000);
       } else {
         const error = await response.json();
         toast.error(error.error || "Failed to accept invitation");
@@ -128,8 +130,9 @@ export function NotificationDropdown() {
   };
 
   const handleDeclineInvite = async (notificationId: string) => {
-    // Just mark the notification as read for now
+    // Mark the notification as read and set status
     markAsRead([notificationId]);
+    setInviteStatuses(prev => ({ ...prev, [notificationId]: 'declined' }));
     toast.info("Invitation declined");
   };
 
@@ -217,36 +220,50 @@ export function NotificationDropdown() {
                       })}
                     </p>
                     {notification.type === "workspace_invite" && notification.invite && (
-                      <div className="flex gap-2 mt-2">
-                        <Button
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAcceptInvite(notification);
-                          }}
-                          disabled={processingInvites.has(notification.id)}
-                        >
-                          {processingInvites.has(notification.id) ? (
-                            "Accepting..."
-                          ) : (
-                            <>
-                              <Check className="h-3 w-3 mr-1" />
-                              Accept
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeclineInvite(notification.id);
-                          }}
-                          disabled={processingInvites.has(notification.id)}
-                        >
-                          <X className="h-3 w-3 mr-1" />
-                          Decline
-                        </Button>
+                      <div className="mt-2">
+                        {inviteStatuses[notification.id] === 'accepted' ? (
+                          <div className="flex items-center gap-1 text-green-600 text-xs">
+                            <UserCheck className="h-3 w-3" />
+                            <span>Accepted</span>
+                          </div>
+                        ) : inviteStatuses[notification.id] === 'declined' ? (
+                          <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                            <X className="h-3 w-3" />
+                            <span>Declined</span>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAcceptInvite(notification);
+                              }}
+                              disabled={processingInvites.has(notification.id)}
+                            >
+                              {processingInvites.has(notification.id) ? (
+                                "Accepting..."
+                              ) : (
+                                <>
+                                  <Check className="h-3 w-3 mr-1" />
+                                  Accept
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeclineInvite(notification.id);
+                              }}
+                              disabled={processingInvites.has(notification.id)}
+                            >
+                              <X className="h-3 w-3 mr-1" />
+                              Decline
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

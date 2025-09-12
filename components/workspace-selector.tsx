@@ -146,10 +146,23 @@ export function WorkspaceSelector({ className }: WorkspaceSelectorProps) {
 
   if (loading) {
     return (
-      <div className={cn("flex items-center space-x-2 px-3 py-2", className)}>
-        <Building2 className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm text-muted-foreground">Loading...</span>
-      </div>
+      <Button
+        variant="ghost"
+        className={cn(
+          "w-full justify-between px-3 py-2 h-auto opacity-50 cursor-wait",
+          className
+        )}
+        disabled
+      >
+        <div className="flex items-center space-x-2">
+          <Building2 className="h-4 w-4 text-muted-foreground" />
+          <div className="flex flex-col items-start">
+            <span className="text-sm font-medium">Loading...</span>
+            <span className="text-xs text-muted-foreground">Please wait</span>
+          </div>
+        </div>
+        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      </Button>
     );
   }
 

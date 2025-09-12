@@ -21,38 +21,55 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { 
-  Plus, Search, UserCheck, UserX, 
-  MoreHorizontal, Pencil
+  Plus, Search, UserMinus, LogOut,
+  MoreHorizontal, Shield, Crown, User
 } from "lucide-react";
-import { UserForm } from "@/components/forms/user-form";
+import { WorkspaceInviteModal } from "@/components/workspace-invite-modal";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function TeamPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [formOpen, setFormOpen] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string>("");
+  const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [workspaceId, setWorkspaceId] = useState<string>("");
+  const [workspaceName, setWorkspaceName] = useState<string>("");
+  const router = useRouter();
 
   const fetchTeamMembers = async () => {
     try {
-      const response = await fetch("/api/users");
-      
-      if (response.ok) {
-        const data = await response.json();
-        setTeamMembers(Array.isArray(data) ? data : []);
-      } else if (response.status === 500) {
-        // Only show error for server errors
-        console.error("Server error fetching team members");
-        toast.error("Failed to load team members");
-      } else {
-        // For other status codes (404, etc), just set empty array
-        setTeamMembers([]);
+      // First get current workspace
+      const workspaceResponse = await fetch("/api/workspaces");
+      if (workspaceResponse.ok) {
+        const workspaceData = await workspaceResponse.json();
+        const currentWorkspace = workspaceData.workspaces?.find(
+          (w: any) => w.id === workspaceData.currentWorkspaceId
+        );
+        
+        if (currentWorkspace) {
+          setWorkspaceId(currentWorkspace.id);
+          setWorkspaceName(currentWorkspace.name);
+          
+          // Then get workspace members
+          const response = await fetch(`/api/workspaces/${currentWorkspace.id}/members`);
+          
+          if (response.ok) {
+            const data = await response.json();
+            setTeamMembers(data.members || []);
+            setCurrentUserRole(data.currentUserRole);
+            setCurrentUserId(data.currentUserId);
+          } else {
+            console.error("Error fetching team members");
+            setTeamMembers([]);
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching team members:", error);
-      // Network errors or other issues
-      toast.error("Failed to connect to server");
+      toast.error("Failed to load team members");
       setTeamMembers([]);
     } finally {
       setLoading(false);
@@ -63,45 +80,47 @@ export default function TeamPage() {
     fetchTeamMembers();
   }, []);
 
-  const handleEdit = (member: any) => {
-    setSelectedMember(member);
-    setFormOpen(true);
-  };
-
-  const handleToggleStatus = async (member: any) => {
+  const handleRemoveMember = async (memberId: string, memberName: string) => {
+    const isLeavingWorkspace = memberId === currentUserId;
+    const confirmMessage = isLeavingWorkspace 
+      ? "Are you sure you want to leave this workspace?" 
+      : `Are you sure you want to remove ${memberName} from this workspace?`;
+    
+    if (!confirm(confirmMessage)) return;
+    
     try {
-      const response = await fetch(`/api/users/${member.id}`, {
-        method: "PUT",
+      const response = await fetch(`/api/workspaces/${workspaceId}/members`, {
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...member, isActive: !member.isActive }),
+        body: JSON.stringify({ memberId }),
       });
       
-      if (!response.ok) throw new Error("Failed to update team member");
-      
-      toast.success(`Team member ${member.isActive ? 'deactivated' : 'activated'}`);
-      fetchTeamMembers();
+      if (response.ok) {
+        const data = await response.json();
+        toast.success(data.message);
+        
+        if (isLeavingWorkspace) {
+          // Redirect to home or refresh to update workspace
+          window.location.href = "/";
+        } else {
+          fetchTeamMembers();
+        }
+      } else {
+        const error = await response.json();
+        toast.error(error.error || "Failed to remove member");
+      }
     } catch (error) {
-      console.error("Error updating team member:", error);
-      toast.error("Failed to update team member");
+      console.error("Error removing member:", error);
+      toast.error("Failed to remove member");
     }
-  };
-
-  const handleFormClose = () => {
-    setFormOpen(false);
-    setSelectedMember(null);
-  };
-
-  const handleFormSuccess = () => {
-    fetchTeamMembers();
   };
 
   const filteredMembers = teamMembers.filter(
     (member) =>
       member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.title?.toLowerCase().includes(searchTerm.toLowerCase())
+      member.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getInitials = (name: string) => {
@@ -113,19 +132,43 @@ export default function TeamPage() {
       .slice(0, 2);
   };
 
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case "owner":
+        return <Crown className="h-4 w-4" />;
+      case "admin":
+        return <Shield className="h-4 w-4" />;
+      default:
+        return <User className="h-4 w-4" />;
+    }
+  };
+
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case "owner":
+        return "default";
+      case "admin":
+        return "secondary";
+      default:
+        return "outline";
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Team</h2>
           <p className="text-muted-foreground">
-            Manage your team members and their roles
+            Members of {workspaceName || "your workspace"}
           </p>
         </div>
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Team Member
-        </Button>
+        {(currentUserRole === "owner" || currentUserRole === "admin") && (
+          <Button onClick={() => setInviteModalOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Invite Member
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -149,36 +192,35 @@ export default function TeamPage() {
                 <TableRow>
                   <TableHead>Member</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Title</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Assignments</TableHead>
+                  <TableHead>Joined</TableHead>
                   <TableHead className="w-[70px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredMembers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground">
                       {searchTerm
                         ? "No team members found matching your search."
-                        : "No team members found. Add your first team member to get started."}
+                        : "No team members found in this workspace."}
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredMembers.map((member) => (
-                    <TableRow key={member.id} className={!member.isActive ? "opacity-60" : ""}>
+                    <TableRow key={member.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={member.avatar} />
                             <AvatarFallback className="text-xs">
-                              {member.name ? getInitials(member.name) : "U"}
+                              {member.name ? getInitials(member.name) : member.email?.[0]?.toUpperCase() || "U"}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium">{member.name || "Unnamed"}</p>
+                            <p className="font-medium">{member.name || member.email}</p>
+                            {member.id === currentUserId && (
+                              <p className="text-xs text-muted-foreground">(You)</p>
+                            )}
                           </div>
                         </div>
                       </TableCell>
@@ -191,70 +233,64 @@ export default function TeamPage() {
                         </a>
                       </TableCell>
                       <TableCell>
-                        {member.phone ? (
-                          <a
-                            href={`tel:${member.phone}`}
-                            className="text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {member.phone}
-                          </a>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {member.title || <span className="text-muted-foreground">-</span>}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {member.role === "admin" ? "Admin" : "Member"}
+                        <Badge variant={getRoleBadgeVariant(member.role)}>
+                          <span className="flex items-center gap-1">
+                            {getRoleIcon(member.role)}
+                            {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                          </span>
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={member.isActive ? "default" : "secondary"}>
-                          {member.isActive ? "Active" : "Inactive"}
-                        </Badge>
+                        <span className="text-sm text-muted-foreground">
+                          {member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : "-"}
+                        </span>
                       </TableCell>
                       <TableCell>
-                        {member._count ? (
-                          <div className="text-sm text-muted-foreground">
-                            <span>{member._count.assignedContacts || 0} contacts</span>
-                            <br />
-                            <span>{member._count.assignedDeals || 0} deals</span>
-                            <br />
-                            <span>{member._count.assignedCompanies || 0} companies</span>
-                          </div>
+                        {member.id === currentUserId ? (
+                          // Current user can only leave if not owner
+                          currentUserRole !== "owner" && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem 
+                                  onClick={() => handleRemoveMember(member.id, member.name || member.email)}
+                                  className="text-destructive"
+                                >
+                                  <LogOut className="mr-2 h-4 w-4" />
+                                  Leave Workspace
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )
                         ) : (
-                          <span className="text-muted-foreground">-</span>
+                          // Can only remove others if admin or owner
+                          (currentUserRole === "owner" || currentUserRole === "admin") && 
+                          // Can't remove owner
+                          member.role !== "owner" &&
+                          // Admins can't remove other admins
+                          !(currentUserRole === "admin" && member.role === "admin") && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem 
+                                  onClick={() => handleRemoveMember(member.id, member.name || member.email)}
+                                  className="text-destructive"
+                                >
+                                  <UserMinus className="mr-2 h-4 w-4" />
+                                  Remove from Workspace
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(member)}>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleToggleStatus(member)}>
-                              {member.isActive ? (
-                                <>
-                                  <UserX className="mr-2 h-4 w-4" />
-                                  Deactivate
-                                </>
-                              ) : (
-                                <>
-                                  <UserCheck className="mr-2 h-4 w-4" />
-                                  Activate
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))
@@ -265,11 +301,11 @@ export default function TeamPage() {
         </CardContent>
       </Card>
 
-      <UserForm
-        open={formOpen}
-        onOpenChange={handleFormClose}
-        user={selectedMember}
-        onSuccess={handleFormSuccess}
+      <WorkspaceInviteModal
+        open={inviteModalOpen}
+        onOpenChange={setInviteModalOpen}
+        workspaceId={workspaceId}
+        workspaceName={workspaceName}
       />
     </div>
   );

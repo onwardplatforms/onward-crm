@@ -50,20 +50,20 @@ export async function GET(request: NextRequest) {
       },
       take: 50,
     });
-
-    // Get unread count
-    const unreadCount = await prisma.notification.count({
-      where: {
-        userId,
-        OR: [
-          { workspaceId },
-          { type: "workspace_invite" },
-        ],
-        read: false,
-      },
+    
+    // Filter out workspace invites that have been accepted or declined
+    const filteredNotifications = notifications.filter(notification => {
+      if (notification.type === "workspace_invite" && notification.invite) {
+        // Only show pending invites
+        return notification.invite.status === "pending";
+      }
+      return true;
     });
 
-    return NextResponse.json({ notifications, unreadCount });
+    // Get unread count (only count notifications we're actually showing)
+    const unreadCount = filteredNotifications.filter(n => !n.read).length;
+
+    return NextResponse.json({ notifications: filteredNotifications, unreadCount });
   } catch (error) {
     console.error("Error fetching notifications:", error);
     return NextResponse.json(
