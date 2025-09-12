@@ -431,7 +431,7 @@ export default function DealsPage() {
                           onDragLeave={() => setDropIndicator(null)}
                           onDrop={(e) => handleDrop(e, stage.value)}
                         >
-                          {dropIndicator?.dealId === stageDeals[0]?.id && dropIndicator.position === 'before' && (
+                          {dropIndicator?.dealId === stageDeals[0]?.id && dropIndicator?.position === 'before' && (
                             <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary z-10" />
                           )}
                         </div>
