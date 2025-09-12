@@ -1,7 +1,6 @@
 "use client";
 
-import { Bell, Search, User, Moon, Sun, LogOut } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Bell, Moon, Sun, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +16,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { GlobalSearch } from "@/components/global-search";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
@@ -37,16 +37,7 @@ export function Header() {
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-6">
       <div className="flex flex-1 items-center">
-        <div className="w-full max-w-lg">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search contacts, companies, deals..."
-              className="pl-8"
-            />
-          </div>
-        </div>
+        <GlobalSearch />
       </div>
       <div className="flex items-center gap-4">
         <Button
