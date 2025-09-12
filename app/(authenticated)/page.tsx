@@ -270,10 +270,8 @@ export default function Dashboard() {
                   />
                   <Bar
                     dataKey="value"
-                    style={{
-                      fill: "hsl(var(--foreground))",
-                      opacity: 0.9,
-                    } as React.CSSProperties}
+                    fill="currentColor"
+                    className="fill-foreground"
                     radius={[12, 12, 0, 0]}
                   />
                 </BarChart>
@@ -304,10 +302,8 @@ export default function Dashboard() {
                   />
                   <Bar 
                     dataKey="weighted" 
-                    style={{
-                      fill: "hsl(var(--foreground))",
-                      opacity: 0.9,
-                    } as React.CSSProperties}
+                    fill="currentColor"
+                    className="fill-foreground"
                     radius={[12, 12, 0, 0]} 
                   />
                 </BarChart>
