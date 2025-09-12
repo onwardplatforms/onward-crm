@@ -182,7 +182,6 @@ export default function ActivitiesPage() {
                   <TableHead>Deal</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Assigned To</TableHead>
-                  <TableHead>Created By</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead className="w-[70px]">Actions</TableHead>
                 </TableRow>
@@ -190,7 +189,7 @@ export default function ActivitiesPage() {
               <TableBody>
                 {filteredActivities.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground">
                       {searchTerm || typeFilter !== "all"
                         ? "No activities found matching your filters."
                         : "No activities logged yet. Start by logging your first activity."}
@@ -247,15 +246,6 @@ export default function ActivitiesPage() {
                           </span>
                         ) : (
                           <span className="text-sm text-muted-foreground">Unassigned</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {activity.user ? (
-                          <span className="text-sm">
-                            {activity.user.name || activity.user.email}
-                          </span>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">Unknown</span>
                         )}
                       </TableCell>
                       <TableCell>

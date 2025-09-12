@@ -101,7 +101,12 @@ export default function ContactsPage() {
   
   // Helper function to get last contacted date for a contact
   const getLastContactedDate = (contactId: string) => {
-    const contactActivities = activities.filter(a => a.contactId === contactId);
+    // Filter activities that include this contact
+    const contactActivities = activities.filter(a => 
+      a.contacts && Array.isArray(a.contacts) && 
+      a.contacts.some((c: any) => c.id === contactId)
+    );
+    
     if (contactActivities.length === 0) return null;
     
     // Sort by date descending and return the most recent
