@@ -93,12 +93,21 @@ export function Sidebar() {
         </Link>
         <button
           className="group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-          onClick={() => {
-            // TODO: Implement logout
+          onClick={async () => {
+            try {
+              const response = await fetch("/api/auth/sign-out", {
+                method: "POST",
+              });
+              if (response.ok) {
+                window.location.href = "/signin";
+              }
+            } catch (error) {
+              console.error("Logout failed:", error);
+            }
           }}
         >
           <LogOut className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-accent-foreground" />
-          Logout
+          Sign Out
         </button>
       </div>
     </div>

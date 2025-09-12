@@ -78,17 +78,19 @@ export default function Dashboard() {
         ? (closedWonDeals.length / closedDeals.length) * 100 
         : 0;
 
-      // Get recent activities (last 5)
-      const sortedActivities = [...activities]
+      // Get today's date at midnight for comparison
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Get recent activities (past activities only - before today)
+      const recentActivities = activities
+        .filter((a: any) => new Date(a.date) < today)
         .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 5);
 
-      // Get upcoming activities (activities with future dates - tomorrow and beyond)
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
+      // Get upcoming activities (today and future)
       const upcomingActivities = activities
-        .filter((a: any) => new Date(a.date) >= tomorrow)
+        .filter((a: any) => new Date(a.date) >= today)
         .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
         .slice(0, 5);
 
@@ -98,7 +100,7 @@ export default function Dashboard() {
         openDeals: openDeals.length,
         pipelineValue,
         dealsByStage,
-        recentActivities: sortedActivities,
+        recentActivities,
         upcomingActivities,
         conversionRate,
         monthlyGrowth: {
