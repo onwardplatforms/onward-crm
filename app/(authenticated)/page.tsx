@@ -35,6 +35,10 @@ import {
   Tooltip, Legend, Cell, RadialBar, RadialBarChart
 } from "recharts";
 import { cn } from "@/lib/utils";
+import { CompanyForm } from "@/components/forms/company-form";
+import { ContactForm } from "@/components/forms/contact-form";
+import { DealForm } from "@/components/forms/deal-form";
+import { ActivityForm } from "@/components/forms/activity-form";
 
 const chartConfig = {
   value: {
@@ -75,6 +79,12 @@ export default function Dashboard() {
   const [companies, setCompanies] = useState<any[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
+  
+  // Form states for quick actions
+  const [dealFormOpen, setDealFormOpen] = useState(false);
+  const [contactFormOpen, setContactFormOpen] = useState(false);
+  const [activityFormOpen, setActivityFormOpen] = useState(false);
+  const [companyFormOpen, setCompanyFormOpen] = useState(false);
   
   // Calculated metrics
   const [salesVelocity, setSalesVelocity] = useState<any>(null);
@@ -552,29 +562,37 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" className="justify-start" asChild>
-              <Link href="/deals/new">
-                <Plus className="mr-2 h-4 w-4" />
-                New Deal
-              </Link>
+            <Button 
+              variant="outline" 
+              className="justify-start" 
+              onClick={() => setDealFormOpen(true)}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              New Deal
             </Button>
-            <Button variant="outline" className="justify-start" asChild>
-              <Link href="/contacts/new">
-                <UserPlus className="mr-2 h-4 w-4" />
-                New Contact
-              </Link>
+            <Button 
+              variant="outline" 
+              className="justify-start"
+              onClick={() => setContactFormOpen(true)}
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              New Contact
             </Button>
-            <Button variant="outline" className="justify-start" asChild>
-              <Link href="/activities/new">
-                <Calendar className="mr-2 h-4 w-4" />
-                Schedule Activity
-              </Link>
+            <Button 
+              variant="outline" 
+              className="justify-start"
+              onClick={() => setActivityFormOpen(true)}
+            >
+              <Calendar className="mr-2 h-4 w-4" />
+              Schedule Activity
             </Button>
-            <Button variant="outline" className="justify-start" asChild>
-              <Link href="/companies/new">
-                <Building className="mr-2 h-4 w-4" />
-                New Company
-              </Link>
+            <Button 
+              variant="outline" 
+              className="justify-start"
+              onClick={() => setCompanyFormOpen(true)}
+            >
+              <Building className="mr-2 h-4 w-4" />
+              New Company
             </Button>
           </div>
         </CardContent>
@@ -635,6 +653,43 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Form Modals for Quick Actions */}
+      <DealForm
+        open={dealFormOpen}
+        onOpenChange={setDealFormOpen}
+        onSuccess={() => {
+          setDealFormOpen(false);
+          fetchDashboardData();
+        }}
+      />
+      
+      <ContactForm
+        open={contactFormOpen}
+        onOpenChange={setContactFormOpen}
+        onSuccess={() => {
+          setContactFormOpen(false);
+          fetchDashboardData();
+        }}
+      />
+      
+      <ActivityForm
+        open={activityFormOpen}
+        onOpenChange={setActivityFormOpen}
+        onSuccess={() => {
+          setActivityFormOpen(false);
+          fetchDashboardData();
+        }}
+      />
+      
+      <CompanyForm
+        open={companyFormOpen}
+        onOpenChange={setCompanyFormOpen}
+        onSuccess={() => {
+          setCompanyFormOpen(false);
+          fetchDashboardData();
+        }}
+      />
     </div>
   );
 }
