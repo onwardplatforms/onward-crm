@@ -7,13 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Shield, Bell, Palette, Target } from "lucide-react";
+import { User, Shield, Bell, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { formatPhoneOnChange } from "@/lib/phone";
 import { useSession } from "@/components/providers/session-provider";
+import { useTheme } from "next-themes";
 
 export default function SettingsPage() {
   const { user } = useSession();
+  const { theme, setTheme } = useTheme();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [profileData, setProfileData] = useState({
     name: "",
@@ -25,14 +27,8 @@ export default function SettingsPage() {
     activityReminders: true,
     dealUpdates: true,
   });
-  const [revenueTarget, setRevenueTarget] = useState({
-    monthly: "",
-    quarterly: "",
-    annual: "",
-  });
   const [loading, setLoading] = useState(false);
   const [savingPreferences, setSavingPreferences] = useState(false);
-  const [savingTarget, setSavingTarget] = useState(false);
 
   const fetchCurrentUser = async () => {
     if (!user?.id) {
@@ -187,10 +183,6 @@ export default function SettingsPage() {
             <Palette className="h-4 w-4 mr-2" />
             Appearance
           </TabsTrigger>
-          <TabsTrigger value="targets">
-            <Target className="h-4 w-4 mr-2" />
-            Revenue Targets
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
@@ -330,109 +322,36 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle>Appearance Settings</CardTitle>
               <CardDescription>
-                Customize how the application looks
+                Choose your preferred theme for the application
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Theme</Label>
                 <div className="flex gap-2">
-                  <Button variant="outline">Light</Button>
-                  <Button variant="outline">Dark</Button>
-                  <Button variant="outline">System</Button>
+                  <Button 
+                    variant={theme === "light" ? "default" : "outline"}
+                    onClick={() => setTheme("light")}
+                  >
+                    Light
+                  </Button>
+                  <Button 
+                    variant={theme === "dark" ? "default" : "outline"}
+                    onClick={() => setTheme("dark")}
+                  >
+                    Dark
+                  </Button>
+                  <Button 
+                    variant={theme === "system" ? "default" : "outline"}
+                    onClick={() => setTheme("system")}
+                  >
+                    System
+                  </Button>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Accent Color</Label>
-                <div className="flex gap-2">
-                  <div className="w-8 h-8 rounded bg-blue-500 cursor-pointer" />
-                  <div className="w-8 h-8 rounded bg-green-500 cursor-pointer" />
-                  <div className="w-8 h-8 rounded bg-purple-500 cursor-pointer" />
-                  <div className="w-8 h-8 rounded bg-red-500 cursor-pointer" />
-                  <div className="w-8 h-8 rounded bg-orange-500 cursor-pointer" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="targets">
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue Targets</CardTitle>
-              <CardDescription>
-                Set your sales targets for tracking pipeline coverage and performance
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="monthlyTarget">Monthly Target</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                  <Input 
-                    id="monthlyTarget" 
-                    type="number"
-                    placeholder="50000"
-                    className="pl-7"
-                    value={revenueTarget.monthly}
-                    onChange={(e) => setRevenueTarget({ ...revenueTarget, monthly: e.target.value })}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">Your monthly revenue goal</p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="quarterlyTarget">Quarterly Target</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                  <Input 
-                    id="quarterlyTarget" 
-                    type="number"
-                    placeholder="150000"
-                    className="pl-7"
-                    value={revenueTarget.quarterly}
-                    onChange={(e) => setRevenueTarget({ ...revenueTarget, quarterly: e.target.value })}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">Your quarterly revenue goal</p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="annualTarget">Annual Target</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                  <Input 
-                    id="annualTarget" 
-                    type="number"
-                    placeholder="600000"
-                    className="pl-7"
-                    value={revenueTarget.annual}
-                    onChange={(e) => setRevenueTarget({ ...revenueTarget, annual: e.target.value })}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">Your annual revenue goal</p>
-              </div>
-
-              <div className="rounded-lg bg-muted p-4">
-                <p className="text-sm font-medium mb-2">Pipeline Coverage</p>
                 <p className="text-xs text-muted-foreground">
-                  Based on your targets, you should maintain a pipeline that's 3-4x your monthly target. 
-                  This ensures you have enough opportunities to hit your goals even with typical win rates.
+                  Select your preferred color theme for the interface
                 </p>
               </div>
-
-              <Button 
-                onClick={() => {
-                  setSavingTarget(true);
-                  // In a real app, this would save to the database
-                  localStorage.setItem('revenueTargets', JSON.stringify(revenueTarget));
-                  toast.success("Revenue targets saved");
-                  setSavingTarget(false);
-                }} 
-                disabled={savingTarget}
-              >
-                {savingTarget ? "Saving..." : "Save Targets"}
-              </Button>
             </CardContent>
           </Card>
         </TabsContent>

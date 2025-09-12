@@ -48,7 +48,7 @@ export async function getCurrentWorkspace(userId: string, sessionId?: string) {
   return userWorkspace.workspace;
 }
 
-export async function createWorkspaceForUser(userId: string, name?: string) {
+export async function createWorkspaceForUser(userId: string, workspaceName?: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { email: true, name: true }
@@ -58,13 +58,17 @@ export async function createWorkspaceForUser(userId: string, name?: string) {
     throw new Error("User not found");
   }
   
-  // Generate a unique slug from the user's name or email
-  const baseName = name || user.name || user.email.split('@')[0];
-  const baseSlug = baseName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  // Use first name for workspace name if not provided
+  const firstName = user.name?.split(' ')[0] || user.email.split('@')[0];
+  const finalWorkspaceName = workspaceName || `${firstName}'s Workspace`;
   
-  // Find a unique slug
+  // Generate a unique slug from the workspace name
+  const baseSlug = finalWorkspaceName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  
+  // Find a unique slug (but keep the workspace name the same)
   let slug = baseSlug;
   let counter = 1;
+  
   while (await prisma.workspace.findUnique({ where: { slug } })) {
     slug = `${baseSlug}-${counter}`;
     counter++;
@@ -73,7 +77,7 @@ export async function createWorkspaceForUser(userId: string, name?: string) {
   // Create the workspace and add the user as owner
   const workspace = await prisma.workspace.create({
     data: {
-      name: name || `${baseName}'s Workspace`,
+      name: finalWorkspaceName,
       slug,
       users: {
         create: {

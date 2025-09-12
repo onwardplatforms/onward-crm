@@ -14,5 +14,4 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24, // 1 day
   },
   baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3333",
-  // TODO: Add hooks for workspace creation after fixing the hook handler issue
 });

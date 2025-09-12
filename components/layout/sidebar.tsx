@@ -13,6 +13,7 @@ import {
   LogOut,
   UsersRound,
 } from "lucide-react";
+import { WorkspaceSelector } from "@/components/workspace-selector";
 
 const navigation = {
   main: [
@@ -60,6 +61,9 @@ export function Sidebar() {
     <div className="flex h-full w-64 flex-col border-r bg-card">
       <div className="flex h-16 items-center px-6 border-b">
         <h1 className="text-xl font-bold">Onward CRM</h1>
+      </div>
+      <div className="border-b px-3 py-3">
+        <WorkspaceSelector />
       </div>
       <nav className="flex-1 space-y-6 px-3 py-4">
         {/* Main */}

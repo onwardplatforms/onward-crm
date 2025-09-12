@@ -36,12 +36,27 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      await signUp.email({
+      const result = await signUp.email({
         email: formData.email,
         password: formData.password,
         name: formData.name,
         callbackURL: "/",
       });
+      
+      // Create workspace for the new user
+      if (result?.data?.user?.id) {
+        try {
+          await fetch("/api/auth/post-signup", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ userId: result.data.user.id }),
+          });
+        } catch (error) {
+          console.error("Failed to create workspace:", error);
+        }
+      }
       
       toast.success("Account created successfully!");
       router.push("/");
