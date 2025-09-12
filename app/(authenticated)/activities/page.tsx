@@ -28,13 +28,23 @@ import {
 } from "@/components/ui/select";
 import { 
   Plus, Search, Phone, Mail, Calendar, FileText,
-  MoreHorizontal, Pencil, Trash
+  MoreHorizontal, Pencil, Trash, CalendarDays
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay, subDays, addDays, isAfter, isBefore, isEqual } from "date-fns";
 import { cn } from "@/lib/utils";
 import { ACTIVITY_TYPES } from "@/lib/types";
 import { ActivityForm } from "@/components/forms/activity-form";
 import { toast } from "sonner";
+
+const DATE_FILTERS = [
+  { value: "future", label: "Future" },
+  { value: "today", label: "Today" },
+  { value: "yesterday", label: "Yesterday" },
+  { value: "last7", label: "Last 7 Days" },
+  { value: "last15", label: "Last 15 Days" },
+  { value: "last30", label: "Last 30 Days" },
+  { value: "all", label: "All Time" },
+];
 
 export default function ActivitiesPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -43,6 +53,7 @@ export default function ActivitiesPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<any>(null);
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [dateFilter, setDateFilter] = useState<string>("all");
 
   const fetchActivities = async () => {
     try {
@@ -94,6 +105,34 @@ export default function ActivitiesPage() {
     fetchActivities();
   };
 
+  const filterByDate = (activity: any) => {
+    const activityDate = new Date(activity.date);
+    const today = startOfDay(new Date());
+    const tomorrow = addDays(today, 1);
+    
+    switch (dateFilter) {
+      case "future":
+        return isAfter(activityDate, endOfDay(new Date()));
+      case "today":
+        return activityDate >= today && activityDate < tomorrow;
+      case "yesterday":
+        const yesterday = subDays(today, 1);
+        return activityDate >= yesterday && activityDate < today;
+      case "last7":
+        const sevenDaysAgo = subDays(today, 7);
+        return activityDate >= sevenDaysAgo && activityDate < tomorrow;
+      case "last15":
+        const fifteenDaysAgo = subDays(today, 15);
+        return activityDate >= fifteenDaysAgo && activityDate < tomorrow;
+      case "last30":
+        const thirtyDaysAgo = subDays(today, 30);
+        return activityDate >= thirtyDaysAgo && activityDate < tomorrow;
+      case "all":
+      default:
+        return true;
+    }
+  };
+
   const filteredActivities = activities
     .filter((activity) => {
       const matchesSearch = 
@@ -107,10 +146,11 @@ export default function ActivitiesPage() {
         activity.deal?.name?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesType = typeFilter === "all" || activity.type === typeFilter;
+      const matchesDate = filterByDate(activity);
       
-      return matchesSearch && matchesType;
+      return matchesSearch && matchesType && matchesDate;
     })
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -154,6 +194,18 @@ export default function ActivitiesPage() {
                 className="max-w-sm"
               />
             </div>
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Date range" />
+              </SelectTrigger>
+              <SelectContent>
+                {DATE_FILTERS.map((filter) => (
+                  <SelectItem key={filter.value} value={filter.value}>
+                    {filter.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Filter by type" />
@@ -190,7 +242,7 @@ export default function ActivitiesPage() {
                 {filteredActivities.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center text-muted-foreground">
-                      {searchTerm || typeFilter !== "all"
+                      {searchTerm || typeFilter !== "all" || dateFilter !== "all"
                         ? "No activities found matching your filters."
                         : "No activities logged yet. Start by logging your first activity."}
                     </TableCell>
