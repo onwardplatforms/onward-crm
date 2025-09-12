@@ -122,6 +122,59 @@ export async function PUT(
       return updatedDeal;
     });
     
+    // Create notification if someone else updated the deal
+    if (isStageChanging && userId) {
+      // Get full deal info for notification
+      const dealInfo = await prisma.deal.findUnique({
+        where: { id },
+        include: {
+          user: true,
+          assignedTo: true,
+        },
+      });
+      
+      if (dealInfo) {
+        // Determine who should be notified
+        const notifyUserIds = new Set<string>();
+        
+        // Notify the deal owner if it's not the person making the change
+        if (dealInfo.userId && dealInfo.userId !== userId) {
+          notifyUserIds.add(dealInfo.userId);
+        }
+        
+        // Notify the assigned user if it's not the person making the change
+        if (dealInfo.assignedToId && dealInfo.assignedToId !== userId) {
+          notifyUserIds.add(dealInfo.assignedToId);
+        }
+        
+        // Create notifications for each user who should be notified
+        for (const notifyUserId of notifyUserIds) {
+          // Check if user has deal updates enabled
+          const preferences = await prisma.notificationPreference.findUnique({
+            where: { userId: notifyUserId },
+          });
+          
+          if (!preferences || preferences.dealUpdates) {
+            // Get the name of the person who made the change
+            const changer = await prisma.user.findUnique({
+              where: { id: userId },
+              select: { name: true, email: true },
+            });
+            
+            await prisma.notification.create({
+              data: {
+                type: "deal_update",
+                title: `Deal "${deal.name}" moved to ${updateData.stage}`,
+                message: `${changer?.name || changer?.email || "Someone"} moved the deal from ${currentDeal.stage} to ${updateData.stage}`,
+                userId: notifyUserId,
+                dealId: id,
+              },
+            });
+          }
+        }
+      }
+    }
+    
     return NextResponse.json(deal);
   } catch (error) {
     console.error("Error updating deal:", error);

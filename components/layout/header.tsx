@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Moon, Sun, LogOut } from "lucide-react";
+import { Moon, Sun, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +17,7 @@ import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { GlobalSearch } from "@/components/global-search";
+import { NotificationDropdown } from "@/components/notification-dropdown";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
@@ -49,10 +50,7 @@ export function Header() {
           <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           <span className="sr-only">Toggle theme</span>
         </Button>
-        <button className="relative rounded-full p-1.5 hover:bg-accent">
-          <Bell className="h-5 w-5 text-muted-foreground" />
-          <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500"></span>
-        </button>
+        <NotificationDropdown />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 rounded-full">

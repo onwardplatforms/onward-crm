@@ -315,7 +315,7 @@ export default function DealsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-4 mb-3">
+      <div className="grid gap-6 md:grid-cols-4 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Pipeline</CardTitle>
@@ -368,7 +368,7 @@ export default function DealsPage() {
         </TabsList>
         
         <TabsContent value="pipeline" className="flex-1 mt-1 overflow-hidden p-1">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-6 h-full">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-6 h-full">
             {/* Active stages - all except closed-won and closed-lost */}
             {DEAL_STAGES.slice(0, 5).map((stage) => {
               const stageDeals = filteredDeals
@@ -404,7 +404,7 @@ export default function DealsPage() {
                     </p>
                   </CardHeader>
                   <CardContent className="flex-1 overflow-hidden px-3 pt-0 pb-3">
-                    <div className="space-y-2 h-full overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                    <div className="space-y-3 h-full overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
                       {/* Drop zone for first position */}
                       {stageDeals.length > 0 && (
                         <div 
@@ -630,7 +630,7 @@ export default function DealsPage() {
                         </div>
                       )}
                       
-                      <div className="space-y-2 h-full overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                      <div className="space-y-3 h-full overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
                       
                       {/* Won section */}
                       {!showDropZones && closedWonDeals.length > 0 && (

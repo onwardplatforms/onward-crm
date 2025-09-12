@@ -44,6 +44,10 @@ model User {
   
   // Transitions made by this user
   dealTransitions  DealTransition[]
+  
+  // Notifications
+  notifications        Notification[]
+  notificationPreference NotificationPreference?
 }
 
 model Session {
@@ -173,6 +177,7 @@ model Deal {
 
   activities Activity[]
   transitions DealTransition[]
+  notifications Notification[]
 
   @@index([userId])
   @@index([companyId])
@@ -202,6 +207,8 @@ model Activity {
   // User assigned to this activity
   assignedToId String?
   assignedTo   User?  @relation("AssignedActivities", fields: [assignedToId], references: [id], onDelete: SetNull)
+  
+  notifications Notification[]
 
   @@index([userId])
   @@index([dealId])
@@ -239,4 +246,35 @@ model DealTransition {
   @@index([transitionAt])
   @@index([fromStage])
   @@index([toStage])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // "activity_reminder" or "deal_update"
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Optional references
+  activityId String?
+  activity   Activity? @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  dealId     String?
+  deal       Deal?     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+model NotificationPreference {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activityReminders   Boolean  @default(true)
+  dealUpdates         Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }

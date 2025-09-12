@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Shield, Bell, Palette } from "lucide-react";
 import { toast } from "sonner";
@@ -20,7 +21,12 @@ export default function SettingsPage() {
     phone: "",
     title: "",
   });
+  const [notificationPreferences, setNotificationPreferences] = useState({
+    activityReminders: true,
+    dealUpdates: true,
+  });
   const [loading, setLoading] = useState(false);
+  const [savingPreferences, setSavingPreferences] = useState(false);
 
   const fetchCurrentUser = async () => {
     if (!user?.id) {
@@ -54,9 +60,54 @@ export default function SettingsPage() {
     }
   };
 
+  const fetchNotificationPreferences = async () => {
+    try {
+      const response = await fetch("/api/notifications/preferences");
+      if (response.ok) {
+        const prefs = await response.json();
+        setNotificationPreferences({
+          activityReminders: prefs.activityReminders,
+          dealUpdates: prefs.dealUpdates,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching notification preferences:", error);
+    }
+  };
+
+  const updateNotificationPreference = async (key: string, value: boolean) => {
+    setSavingPreferences(true);
+    try {
+      const newPrefs = { ...notificationPreferences, [key]: value };
+      setNotificationPreferences(newPrefs);
+      
+      const response = await fetch("/api/notifications/preferences", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newPrefs),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update preferences");
+      }
+      
+      toast.success("Notification preferences updated");
+    } catch (error) {
+      console.error("Error updating notification preferences:", error);
+      toast.error("Failed to update preferences");
+      // Revert on error
+      setNotificationPreferences(prev => ({ ...prev, [key]: !value }));
+    } finally {
+      setSavingPreferences(false);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchCurrentUser();
+      fetchNotificationPreferences();
     }
   }, [user]);
 
@@ -215,36 +266,45 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle>Notification Preferences</CardTitle>
               <CardDescription>
-                Choose how you want to be notified
+                Choose how you want to be notified in the app
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Email Notifications</p>
+                <div className="space-y-1">
+                  <Label htmlFor="activity-reminders" className="font-medium">
+                    Activity Reminders
+                  </Label>
                   <p className="text-sm text-muted-foreground">
-                    Receive email updates about your activities
+                    Get notified 3 days before upcoming activities
                   </p>
                 </div>
-                <Button variant="outline" size="sm">Configure</Button>
+                <Switch
+                  id="activity-reminders"
+                  checked={notificationPreferences.activityReminders}
+                  onCheckedChange={(checked) => 
+                    updateNotificationPreference("activityReminders", checked)
+                  }
+                  disabled={savingPreferences}
+                />
               </div>
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Task Reminders</p>
+                <div className="space-y-1">
+                  <Label htmlFor="deal-updates" className="font-medium">
+                    Deal Updates
+                  </Label>
                   <p className="text-sm text-muted-foreground">
-                    Get reminded about upcoming tasks and follow-ups
+                    Get notified when someone else updates your deals
                   </p>
                 </div>
-                <Button variant="outline" size="sm">Configure</Button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Deal Updates</p>
-                  <p className="text-sm text-muted-foreground">
-                    Notifications when deals change stages
-                  </p>
-                </div>
-                <Button variant="outline" size="sm">Configure</Button>
+                <Switch
+                  id="deal-updates"
+                  checked={notificationPreferences.dealUpdates}
+                  onCheckedChange={(checked) => 
+                    updateNotificationPreference("dealUpdates", checked)
+                  }
+                  disabled={savingPreferences}
+                />
               </div>
             </CardContent>
           </Card>
