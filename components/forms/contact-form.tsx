@@ -40,7 +40,7 @@ const contactSchema = z.object({
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   phone: phoneSchema,
   title: z.string().optional(),
-  companyId: z.string().optional(),
+  companyId: z.string().min(1, "Company is required"),
   assignedToId: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -253,7 +253,7 @@ export function ContactForm({
               name="companyId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Company (Optional)</FormLabel>
+                  <FormLabel>Company</FormLabel>
                   <div className="flex gap-2">
                     <Select
                       onValueChange={field.onChange}

@@ -51,6 +51,24 @@ export async function PUT(
     const body = await request.json();
     console.log("Updating deal:", id, "with data:", body);
     
+    // Get the current deal to check for stage changes
+    const currentDeal = await prisma.deal.findUnique({
+      where: { id },
+      select: {
+        stage: true,
+        position: true,
+        value: true,
+        probability: true,
+      },
+    });
+    
+    if (!currentDeal) {
+      return NextResponse.json(
+        { error: "Deal not found" },
+        { status: 404 }
+      );
+    }
+    
     // Handle "unassigned" value
     const { assignedToId, ...restData } = body;
     const updateData = {
@@ -60,20 +78,46 @@ export async function PUT(
     
     console.log("Processed update data:", updateData);
     
-    const deal = await prisma.deal.update({
-      where: { id },
-      data: updateData,
-      include: {
-        company: true,
-        contact: true,
-        assignedTo: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+    // Check if stage is changing
+    const isStageChanging = updateData.stage && updateData.stage !== currentDeal.stage;
+    
+    // Update the deal and create transition if stage changed
+    const deal = await prisma.$transaction(async (tx) => {
+      // Update the deal
+      const updatedDeal = await tx.deal.update({
+        where: { id },
+        data: updateData,
+        include: {
+          company: true,
+          contact: true,
+          assignedTo: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
           },
         },
-      },
+      });
+      
+      // Create transition record if stage changed
+      if (isStageChanging) {
+        await tx.dealTransition.create({
+          data: {
+            dealId: id,
+            fromStage: currentDeal.stage,
+            toStage: updateData.stage!,
+            fromPosition: currentDeal.position,
+            toPosition: updateData.position || 0,
+            value: updateData.value || currentDeal.value,
+            probability: updateData.probability || currentDeal.probability,
+            // TODO: Add actual user ID when auth is implemented
+            changedById: null,
+          },
+        });
+      }
+      
+      return updatedDeal;
     });
     
     return NextResponse.json(deal);

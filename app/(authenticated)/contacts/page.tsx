@@ -121,10 +121,9 @@ export default function ContactsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Contact</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
-                  <TableHead>Company</TableHead>
                   <TableHead>Title</TableHead>
                   <TableHead>Assigned To</TableHead>
                   <TableHead className="w-[70px]">Actions</TableHead>
@@ -133,7 +132,7 @@ export default function ContactsPage() {
               <TableBody>
                 {filteredContacts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground">
                       {searchTerm
                         ? "No contacts found matching your search."
                         : "No contacts found. Add your first contact to get started."}
@@ -142,11 +141,21 @@ export default function ContactsPage() {
                 ) : (
                   filteredContacts.map((contact) => (
                     <TableRow key={contact.id}>
-                      <TableCell className="font-medium">
-                        {contact.firstName} {contact.lastName}
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">
+                            {contact.firstName} {contact.lastName}
+                          </p>
+                          {contact.company && (
+                            <p className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Building2 className="h-3 w-3" />
+                              {contact.company.name}
+                            </p>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
-                        {contact.email && (
+                        {contact.email ? (
                           <a
                             href={`mailto:${contact.email}`}
                             className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
@@ -154,10 +163,12 @@ export default function ContactsPage() {
                             <Mail className="h-3 w-3" />
                             {contact.email}
                           </a>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
                       <TableCell>
-                        {contact.phone && (
+                        {contact.phone ? (
                           <a
                             href={`tel:${contact.phone}`}
                             className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
@@ -165,17 +176,11 @@ export default function ContactsPage() {
                             <Phone className="h-3 w-3" />
                             {contact.phone}
                           </a>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
-                      <TableCell>
-                        {contact.company && (
-                          <div className="flex items-center gap-1">
-                            <Building2 className="h-3 w-3" />
-                            {contact.company.name}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>{contact.title}</TableCell>
+                      <TableCell>{contact.title || <span className="text-muted-foreground">-</span>}</TableCell>
                       <TableCell>
                         {contact.assignedTo ? (
                           <span className="text-sm">

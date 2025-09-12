@@ -46,19 +46,39 @@ export async function POST(request: NextRequest) {
       assignedToId: assignedToId === "unassigned" ? null : assignedToId,
     };
     
-    const deal = await prisma.deal.create({
-      data: dealData,
-      include: {
-        company: true,
-        contact: true,
-        assignedTo: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+    // Create deal and initial transition in a transaction
+    const deal = await prisma.$transaction(async (tx) => {
+      const newDeal = await tx.deal.create({
+        data: dealData,
+        include: {
+          company: true,
+          contact: true,
+          assignedTo: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
           },
         },
-      },
+      });
+      
+      // Create initial transition record
+      await tx.dealTransition.create({
+        data: {
+          dealId: newDeal.id,
+          fromStage: null, // null indicates initial creation
+          toStage: newDeal.stage,
+          fromPosition: null,
+          toPosition: newDeal.position,
+          value: newDeal.value,
+          probability: newDeal.probability,
+          // TODO: Add actual user ID when auth is implemented
+          changedById: null,
+        },
+      });
+      
+      return newDeal;
     });
     
     return NextResponse.json(deal, { status: 201 });

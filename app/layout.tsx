@@ -32,15 +32,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <div className="flex h-screen bg-background">
-            <Sidebar />
-            <div className="flex flex-1 flex-col">
-              <Header />
-              <main className="flex-1 flex flex-col overflow-hidden bg-muted/30 p-6">
-                {children}
-              </main>
-            </div>
-          </div>
+          {children}
           <Toaster duration={4000} />
         </Providers>
       </body>

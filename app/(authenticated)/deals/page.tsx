@@ -7,6 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -771,87 +779,133 @@ export default function DealsPage() {
             <CardContent>
               {loading ? (
                 <div className="text-center py-8">Loading deals...</div>
-              ) : filteredDeals.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No deals found. Create your first deal to get started.
-                </div>
               ) : (
-                <div className="space-y-2">
-                  {filteredDeals.map((deal) => (
-                    <div
-                      key={deal.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
-                    >
-                      <div className="space-y-1 flex-1">
-                        <p className="font-medium">{deal.name}</p>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          {deal.value && <span className="font-semibold">{formatCurrency(deal.value)}</span>}
-                          {deal.company && (
-                            <span className="flex items-center gap-1">
-                              <Building2 className="h-3 w-3" />
-                              {deal.company.name}
-                            </span>
-                          )}
-                          {deal.contact && (
-                            <span className="flex items-center gap-1">
-                              <User className="h-3 w-3" />
-                              {deal.contact.firstName} {deal.contact.lastName}
-                            </span>
-                          )}
-                          {deal.closeDate && (
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {format(new Date(deal.closeDate), "MMM d, yyyy")}
-                            </span>
-                          )}
-                          {deal.assignedTo && (
-                            <span className="flex items-center gap-1">
-                              <User className="h-3 w-3" />
-                              {deal.assignedTo.name || deal.assignedTo.email}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Select
-                          value={deal.stage}
-                          onValueChange={(value) => handleStageChange(deal.id, value)}
-                        >
-                          <SelectTrigger className="w-[140px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {DEAL_STAGES.map((stage) => (
-                              <SelectItem key={stage.value} value={stage.value}>
-                                {stage.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEdit(deal)}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(deal.id)}
-                            className="text-red-600"
-                          >
-                            <Trash className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Deal Name</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead>Stage</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>Close Date</TableHead>
+                      <TableHead>Probability</TableHead>
+                      <TableHead>Assigned To</TableHead>
+                      <TableHead className="w-[70px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredDeals.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center text-muted-foreground">
+                          {searchTerm
+                            ? "No deals found matching your search."
+                            : "No deals found. Create your first deal to get started."}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredDeals.map((deal) => (
+                        <TableRow key={deal.id} className="cursor-pointer" onDoubleClick={() => handleEdit(deal)}>
+                          <TableCell className="font-medium">
+                            {deal.name}
+                          </TableCell>
+                          <TableCell>
+                            {deal.value ? (
+                              <span className="font-semibold">{formatCurrency(deal.value)}</span>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={deal.stage}
+                              onValueChange={(value) => handleStageChange(deal.id, value)}
+                            >
+                              <SelectTrigger className="w-[140px] h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {DEAL_STAGES.map((stage) => (
+                                  <SelectItem key={stage.value} value={stage.value}>
+                                    {stage.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            {deal.company ? (
+                              <div className="flex items-center gap-1">
+                                <Building2 className="h-3 w-3" />
+                                {deal.company.name}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {deal.contact ? (
+                              <div className="flex items-center gap-1">
+                                <User className="h-3 w-3" />
+                                {deal.contact.firstName} {deal.contact.lastName}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {deal.closeDate ? (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {format(new Date(deal.closeDate), "MMM d, yyyy")}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {deal.probability ? (
+                              <Badge variant="outline">{deal.probability}%</Badge>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {deal.assignedTo ? (
+                              <span className="text-sm">
+                                {deal.assignedTo.name || deal.assignedTo.email}
+                              </span>
+                            ) : (
+                              <span className="text-sm text-muted-foreground">Unassigned</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleEdit(deal)}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDelete(deal.id)}
+                                  className="text-red-600"
+                                >
+                                  <Trash className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
               )}
             </CardContent>
           </Card>

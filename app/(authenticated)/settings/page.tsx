@@ -9,8 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Shield, Bell, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { formatPhoneOnChange } from "@/lib/phone";
+import { useSession } from "@/components/providers/session-provider";
 
 export default function SettingsPage() {
+  const { user } = useSession();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [profileData, setProfileData] = useState({
     name: "",
@@ -21,21 +23,31 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
 
   const fetchCurrentUser = async () => {
+    if (!user?.id) {
+      console.log("No user ID available", user);
+      return;
+    }
+    
+    console.log("Fetching user data for ID:", user.id);
+    
     try {
-      // For now, get the temp user - later this will be from auth
-      const response = await fetch("/api/users");
+      // Get the full user data including CRM-specific fields
+      const response = await fetch(`/api/users/${user.id}`);
+      console.log("Response status:", response.status);
+      
       if (response.ok) {
-        const users = await response.json();
-        const tempUser = users.find((u: any) => u.id === "temp-user-id") || users[0];
-        if (tempUser) {
-          setCurrentUser(tempUser);
-          setProfileData({
-            name: tempUser.name || "",
-            email: tempUser.email || "",
-            phone: tempUser.phone || "",
-            title: tempUser.title || "",
-          });
-        }
+        const userData = await response.json();
+        console.log("User data received:", userData);
+        setCurrentUser(userData);
+        setProfileData({
+          name: userData.name || "",
+          email: userData.email || "",
+          phone: userData.phone || "",
+          title: userData.title || "",
+        });
+      } else {
+        const error = await response.text();
+        console.error("Failed to fetch user:", error);
       }
     } catch (error) {
       console.error("Error fetching current user:", error);
@@ -43,8 +55,10 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    fetchCurrentUser();
-  }, []);
+    if (user) {
+      fetchCurrentUser();
+    }
+  }, [user]);
 
   const handleProfileSave = async () => {
     if (!currentUser) return;

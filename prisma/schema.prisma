@@ -12,17 +12,23 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String?
+  id             String    @id @default(cuid())
+  email          String    @unique
+  emailVerified  Boolean   @default(false)
+  name           String?
+  image          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  
+  // CRM specific fields
   role      String   @default("member") // admin, member
-  avatar    String?
   title     String?
   phone     String?
   isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  // Auth relationships
+  sessions  Session[]
+  accounts  Account[]
 
   // Owned records
   contacts   Contact[]
@@ -34,6 +40,57 @@ model User {
   assignedContacts Contact[] @relation("AssignedContacts")
   assignedCompanies Company[] @relation("AssignedCompanies")
   assignedDeals    Deal[]    @relation("AssignedDeals")
+  
+  // Transitions made by this user
+  dealTransitions  DealTransition[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([token])
+}
+
+model Account {
+  id                String   @id @default(cuid())
+  accountId         String
+  providerId        String
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken       String?
+  refreshToken      String?
+  idToken           String?
+  accessTokenExpiresAt DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope             String?
+  password          String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  @@unique([identifier, value])
+  @@index([identifier])
 }
 
 model Contact {
@@ -47,8 +104,8 @@ model Contact {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  companyId String?
-  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -57,7 +114,7 @@ model Contact {
   assignedTo   User?  @relation("AssignedContacts", fields: [assignedToId], references: [id], onDelete: SetNull)
 
   deals      Deal[]
-  activities Activity[]
+  activities Activity[] @relation("ActivityContacts")
 
   @@index([userId])
   @@index([companyId])
@@ -83,7 +140,6 @@ model Company {
 
   contacts   Contact[]
   deals      Deal[]
-  activities Activity[]
 
   @@index([userId])
   @@index([assignedToId])
@@ -114,6 +170,7 @@ model Deal {
   assignedTo   User?  @relation("AssignedDeals", fields: [assignedToId], references: [id], onDelete: SetNull)
 
   activities Activity[]
+  transitions DealTransition[]
 
   @@index([userId])
   @@index([companyId])
@@ -127,25 +184,52 @@ model Activity {
   subject     String
   description String?
   date        DateTime @default(now())
-  dueDate     DateTime?
-  completed   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  contactId String?
-  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
-
-  companyId String?
-  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  // Multiple contacts can be associated with an activity
+  contacts    Contact[] @relation("ActivityContacts")
 
   dealId String?
   deal   Deal?   @relation(fields: [dealId], references: [id], onDelete: SetNull)
 
+  // User who created this activity
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([contactId])
-  @@index([companyId])
   @@index([dealId])
+  @@index([date])
+}
+
+model DealTransition {
+  id            String   @id @default(cuid())
+  dealId        String
+  deal          Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  
+  fromStage     String?  // null for initial creation
+  toStage       String
+  fromPosition  Int?
+  toPosition    Int
+  
+  // Track value and probability at time of transition
+  value         Float?
+  probability   Int?
+  
+  // Who made the change
+  changedById   String?
+  changedBy     User?    @relation(fields: [changedById], references: [id], onDelete: SetNull)
+  
+  // When it happened
+  transitionAt  DateTime @default(now())
+  
+  // Additional context
+  reason        String?  // Optional reason for stage change
+  notes         String?  // Any notes about the transition
+  
+  @@index([dealId])
+  @@index([changedById])
+  @@index([transitionAt])
+  @@index([fromStage])
+  @@index([toStage])
 }
