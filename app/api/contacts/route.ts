@@ -7,6 +7,13 @@ export async function GET(request: NextRequest) {
     const contacts = await prisma.contact.findMany({
       include: {
         company: true,
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -30,13 +37,25 @@ export async function POST(request: NextRequest) {
     // For now, use a hardcoded user ID until auth is implemented
     const userId = "temp-user-id";
     
+    // Handle "unassigned" value
+    const { assignedToId, ...restData } = body;
+    const contactData = {
+      ...restData,
+      userId,
+      assignedToId: assignedToId === "unassigned" ? null : assignedToId,
+    };
+    
     const contact = await prisma.contact.create({
-      data: {
-        ...body,
-        userId,
-      },
+      data: contactData,
       include: {
         company: true,
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
     

@@ -106,12 +106,12 @@ export default function Dashboard() {
               </div>
               <div className="text-center">
                 <div className="font-medium">Closed Won</div>
-                <div className="text-2xl font-bold text-green-600">0</div>
+                <div className="text-2xl font-bold">0</div>
                 <div className="text-muted-foreground">$0</div>
               </div>
               <div className="text-center">
                 <div className="font-medium">Closed Lost</div>
-                <div className="text-2xl font-bold text-red-600">0</div>
+                <div className="text-2xl font-bold">0</div>
                 <div className="text-muted-foreground">$0</div>
               </div>
             </div>

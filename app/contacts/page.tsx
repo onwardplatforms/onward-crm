@@ -126,13 +126,14 @@ export default function ContactsPage() {
                   <TableHead>Phone</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Title</TableHead>
+                  <TableHead>Assigned To</TableHead>
                   <TableHead className="w-[70px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredContacts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground">
                       {searchTerm
                         ? "No contacts found matching your search."
                         : "No contacts found. Add your first contact to get started."}
@@ -175,6 +176,15 @@ export default function ContactsPage() {
                         )}
                       </TableCell>
                       <TableCell>{contact.title}</TableCell>
+                      <TableCell>
+                        {contact.assignedTo ? (
+                          <span className="text-sm">
+                            {contact.assignedTo.name || contact.assignedTo.email}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">Unassigned</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

@@ -4,17 +4,25 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Create a default user
+  // Create a default admin user
   const hashedPassword = await bcrypt.hash("password123", 10);
   
   const user = await prisma.user.upsert({
     where: { id: "temp-user-id" },
-    update: {},
+    update: {
+      name: "Demo Admin",
+      role: "admin",
+      title: "Sales Manager",
+      isActive: true,
+    },
     create: {
       id: "temp-user-id",
       email: "demo@onward.com",
       password: hashedPassword,
-      name: "Demo User",
+      name: "Demo Admin",
+      role: "admin",
+      title: "Sales Manager",
+      isActive: true,
     },
   });
 

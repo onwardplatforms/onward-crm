@@ -258,11 +258,7 @@ export default function DealsPage() {
               return (
                 <Card 
                   key={stage.value} 
-                  className={cn(
-                    "min-h-[400px] transition-colors",
-                    stage.value === "closed-won" && "border-green-500/20 bg-green-500/5",
-                    stage.value === "closed-lost" && "border-red-500/20 bg-red-500/5"
-                  )}
+                  className="min-h-[400px] transition-colors"
                   onDragOver={(e) => {
                     handleDragOver(e);
                     e.currentTarget.classList.add("ring-2", "ring-primary");
@@ -410,6 +406,12 @@ export default function DealsPage() {
                               {format(new Date(deal.closeDate), "MMM d, yyyy")}
                             </span>
                           )}
+                          {deal.assignedTo && (
+                            <span className="flex items-center gap-1">
+                              <User className="h-3 w-3" />
+                              {deal.assignedTo.name || deal.assignedTo.email}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -423,12 +425,7 @@ export default function DealsPage() {
                           <SelectContent>
                             {DEAL_STAGES.map((stage) => (
                               <SelectItem key={stage.value} value={stage.value}>
-                                <span className={cn(
-                                  stage.value === "closed-won" && "text-green-600",
-                                  stage.value === "closed-lost" && "text-red-600"
-                                )}>
-                                  {stage.label}
-                                </span>
+                                {stage.label}
                               </SelectItem>
                             ))}
                           </SelectContent>

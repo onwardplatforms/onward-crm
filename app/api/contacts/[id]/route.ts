@@ -13,6 +13,13 @@ export async function GET(
         company: true,
         activities: true,
         deals: true,
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
     
@@ -41,11 +48,25 @@ export async function PUT(
   try {
     const body = await request.json();
     
+    // Handle "unassigned" value
+    const { assignedToId, ...restData } = body;
+    const updateData = {
+      ...restData,
+      assignedToId: assignedToId === "unassigned" ? null : assignedToId,
+    };
+    
     const contact = await prisma.contact.update({
       where: { id: params.id },
-      data: body,
+      data: updateData,
       include: {
         company: true,
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
     

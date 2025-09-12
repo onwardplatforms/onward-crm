@@ -16,13 +16,24 @@ model User {
   email     String   @unique
   password  String
   name      String?
+  role      String   @default("member") // admin, member
+  avatar    String?
+  title     String?
+  phone     String?
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Owned records
   contacts   Contact[]
   companies  Company[]
   deals      Deal[]
   activities Activity[]
+  
+  // Assigned records
+  assignedContacts Contact[] @relation("AssignedContacts")
+  assignedCompanies Company[] @relation("AssignedCompanies")
+  assignedDeals    Deal[]    @relation("AssignedDeals")
 }
 
 model Contact {
@@ -41,12 +52,16 @@ model Contact {
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  assignedToId String?
+  assignedTo   User?  @relation("AssignedContacts", fields: [assignedToId], references: [id], onDelete: SetNull)
 
   deals      Deal[]
   activities Activity[]
 
   @@index([userId])
   @@index([companyId])
+  @@index([assignedToId])
 }
 
 model Company {
@@ -62,12 +77,16 @@ model Company {
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  assignedToId String?
+  assignedTo   User?  @relation("AssignedCompanies", fields: [assignedToId], references: [id], onDelete: SetNull)
 
   contacts   Contact[]
   deals      Deal[]
   activities Activity[]
 
   @@index([userId])
+  @@index([assignedToId])
 }
 
 model Deal {
@@ -89,12 +108,16 @@ model Deal {
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  assignedToId String?
+  assignedTo   User?  @relation("AssignedDeals", fields: [assignedToId], references: [id], onDelete: SetNull)
 
   activities Activity[]
 
   @@index([userId])
   @@index([companyId])
   @@index([contactId])
+  @@index([assignedToId])
 }
 
 model Activity {

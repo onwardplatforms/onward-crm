@@ -38,6 +38,7 @@ const companySchema = z.object({
   industry: z.string().optional(),
   size: z.string().optional(),
   location: z.string().optional(),
+  assignedToId: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -57,6 +58,7 @@ export function CompanyForm({
   onSuccess,
 }: CompanyFormProps) {
   const [loading, setLoading] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
 
   const form = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
@@ -66,9 +68,24 @@ export function CompanyForm({
       industry: company?.industry || "",
       size: company?.size || "",
       location: company?.location || "",
+      assignedToId: company?.assignedToId || undefined,
       notes: company?.notes || "",
     },
   });
+
+  const fetchTeamMembers = async () => {
+    try {
+      const res = await fetch("/api/team");
+      const data = await res.json();
+      setTeamMembers(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeamMembers();
+  }, []);
 
   useEffect(() => {
     if (company) {
@@ -78,6 +95,7 @@ export function CompanyForm({
         industry: company.industry || "",
         size: company.size || "",
         location: company.location || "",
+        assignedToId: company.assignedToId || undefined,
         notes: company.notes || "",
       });
     }
@@ -91,12 +109,19 @@ export function CompanyForm({
         : "/api/companies";
       const method = company ? "PUT" : "POST";
 
+      // Handle "unassigned" value
+      const { assignedToId, ...restData } = data;
+      const submitData = {
+        ...restData,
+        assignedToId: assignedToId === "unassigned" ? null : assignedToId,
+      };
+
       const response = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(submitData),
       });
 
       if (!response.ok) {
@@ -224,6 +249,34 @@ export function CompanyForm({
                   <FormControl>
                     <Input placeholder="San Francisco, CA" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="assignedToId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assigned To</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select team member" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      {teamMembers.filter(m => m.isActive).map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
+                          {member.name || member.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

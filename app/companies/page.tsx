@@ -128,13 +128,14 @@ export default function CompaniesPage() {
                   <TableHead>Size</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Contacts</TableHead>
+                  <TableHead>Assigned To</TableHead>
                   <TableHead className="w-[70px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredCompanies.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground">
                       {searchTerm
                         ? "No companies found matching your search."
                         : "No companies found. Add your first company to get started."}
@@ -174,6 +175,15 @@ export default function CompaniesPage() {
                           <Users className="h-3 w-3 mr-1" />
                           {company._count?.contacts || 0}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {company.assignedTo ? (
+                          <span className="text-sm">
+                            {company.assignedTo.name || company.assignedTo.email}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">Unassigned</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>

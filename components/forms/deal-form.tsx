@@ -45,6 +45,7 @@ const dealSchema = z.object({
   probability: z.coerce.number().min(0).max(100).optional(),
   companyId: z.string().optional(),
   contactId: z.string().optional(),
+  assignedToId: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -66,6 +67,7 @@ export function DealForm({
   const [loading, setLoading] = useState(false);
   const [companies, setCompanies] = useState<any[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [companyFormOpen, setCompanyFormOpen] = useState(false);
   const [contactFormOpen, setContactFormOpen] = useState(false);
 
@@ -79,6 +81,7 @@ export function DealForm({
       probability: deal?.probability || 0,
       companyId: deal?.companyId || undefined,
       contactId: deal?.contactId || undefined,
+      assignedToId: deal?.assignedToId || undefined,
       notes: deal?.notes || "",
     },
   });
@@ -87,9 +90,10 @@ export function DealForm({
     try {
       const res = await fetch("/api/companies");
       const data = await res.json();
-      setCompanies(data);
+      setCompanies(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching companies:", error);
+      setCompanies([]);
     }
   };
 
@@ -97,15 +101,28 @@ export function DealForm({
     try {
       const res = await fetch("/api/contacts");
       const data = await res.json();
-      setContacts(data);
+      setContacts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching contacts:", error);
+      setContacts([]);
+    }
+  };
+
+  const fetchTeamMembers = async () => {
+    try {
+      const res = await fetch("/api/team");
+      const data = await res.json();
+      setTeamMembers(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      setTeamMembers([]);
     }
   };
 
   useEffect(() => {
     fetchCompanies();
     fetchContacts();
+    fetchTeamMembers();
   }, []);
 
   useEffect(() => {
@@ -118,6 +135,7 @@ export function DealForm({
         probability: deal.probability || 0,
         companyId: deal.companyId || undefined,
         contactId: deal.contactId || undefined,
+        assignedToId: deal.assignedToId || undefined,
         notes: deal.notes || "",
       });
     }
@@ -283,15 +301,29 @@ export function DealForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Probability (%)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        min="0" 
-                        max="100"
-                        placeholder="75" 
-                        {...field} 
-                      />
-                    </FormControl>
+                    <Select
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      value={field.value?.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select probability" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="0">0%</SelectItem>
+                        <SelectItem value="10">10%</SelectItem>
+                        <SelectItem value="20">20%</SelectItem>
+                        <SelectItem value="30">30%</SelectItem>
+                        <SelectItem value="40">40%</SelectItem>
+                        <SelectItem value="50">50%</SelectItem>
+                        <SelectItem value="60">60%</SelectItem>
+                        <SelectItem value="70">70%</SelectItem>
+                        <SelectItem value="80">80%</SelectItem>
+                        <SelectItem value="90">90%</SelectItem>
+                        <SelectItem value="100">100%</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -372,6 +404,35 @@ export function DealForm({
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="assignedToId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assigned To</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select team member" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      {teamMembers.filter(m => m.isActive).map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
+                          {member.name || member.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

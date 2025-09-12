@@ -40,6 +40,7 @@ const contactSchema = z.object({
   phone: z.string().optional(),
   title: z.string().optional(),
   companyId: z.string().optional(),
+  assignedToId: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -60,6 +61,7 @@ export function ContactForm({
 }: ContactFormProps) {
   const [loading, setLoading] = useState(false);
   const [companies, setCompanies] = useState<any[]>([]);
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [companyFormOpen, setCompanyFormOpen] = useState(false);
 
   const form = useForm<ContactFormData>({
@@ -71,6 +73,7 @@ export function ContactForm({
       phone: contact?.phone || "",
       title: contact?.title || "",
       companyId: contact?.companyId || undefined,
+      assignedToId: contact?.assignedToId || undefined,
       notes: contact?.notes || "",
     },
   });
@@ -85,8 +88,19 @@ export function ContactForm({
     }
   };
 
+  const fetchTeamMembers = async () => {
+    try {
+      const res = await fetch("/api/team");
+      const data = await res.json();
+      setTeamMembers(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+    }
+  };
+
   useEffect(() => {
     fetchCompanies();
+    fetchTeamMembers();
   }, []);
 
   useEffect(() => {
@@ -98,6 +112,7 @@ export function ContactForm({
         phone: contact.phone || "",
         title: contact.title || "",
         companyId: contact.companyId || undefined,
+        assignedToId: contact.assignedToId || undefined,
         notes: contact.notes || "",
       });
     }
@@ -259,6 +274,34 @@ export function ContactForm({
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="assignedToId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assigned To</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select team member" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      {teamMembers.filter(m => m.isActive).map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
+                          {member.name || member.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
