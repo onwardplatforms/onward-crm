@@ -19,6 +19,13 @@ export async function GET(request: NextRequest) {
             email: true,
           },
         },
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
       orderBy: {
         date: "desc",
@@ -50,12 +57,13 @@ export async function POST(request: NextRequest) {
     }
     
     // Extract contactIds and other data
-    const { contactIds, dealId, ...restData } = body;
+    const { contactIds, dealId, assignedToId, ...restData } = body;
     
     const activityData = {
       ...restData,
       userId,
       dealId: dealId === "none" ? null : dealId,
+      assignedToId: assignedToId === "unassigned" ? null : assignedToId,
       contacts: {
         connect: contactIds?.map((id: string) => ({ id })) || [],
       },
@@ -71,6 +79,13 @@ export async function POST(request: NextRequest) {
         },
         deal: true,
         user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        assignedTo: {
           select: {
             id: true,
             name: true,

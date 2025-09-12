@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { CompanyForm } from "./company-form";
 import { phoneSchema, formatPhoneOnChange } from "@/lib/phone";
+import { useCurrentUser } from "@/lib/hooks/use-current-user";
 
 const contactSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -64,6 +65,7 @@ export function ContactForm({
   const [companies, setCompanies] = useState<any[]>([]);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [companyFormOpen, setCompanyFormOpen] = useState(false);
+  const { user: currentUser } = useCurrentUser();
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
@@ -74,7 +76,7 @@ export function ContactForm({
       phone: contact?.phone || "",
       title: contact?.title || "",
       companyId: contact?.companyId || undefined,
-      assignedToId: contact?.assignedToId || undefined,
+      assignedToId: contact?.assignedToId || currentUser?.id || undefined,
       notes: contact?.notes || "",
     },
   });
@@ -124,8 +126,11 @@ export function ContactForm({
         assignedToId: contact.assignedToId || undefined,
         notes: contact.notes || "",
       });
+    } else if (currentUser?.id && !form.getValues("assignedToId")) {
+      // Set default assignedToId for new contacts
+      form.setValue("assignedToId", currentUser.id);
     }
-  }, [contact, form]);
+  }, [contact, form, currentUser]);
 
   const onSubmit = async (data: ContactFormData) => {
     setLoading(true);

@@ -31,6 +31,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { INDUSTRIES, COMPANY_SIZES } from "@/lib/types";
+import { useCurrentUser } from "@/lib/hooks/use-current-user";
 
 const companySchema = z.object({
   name: z.string().min(1, "Company name is required"),
@@ -59,6 +60,7 @@ export function CompanyForm({
 }: CompanyFormProps) {
   const [loading, setLoading] = useState(false);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const { user: currentUser } = useCurrentUser();
 
   const form = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
@@ -68,7 +70,7 @@ export function CompanyForm({
       industry: company?.industry || "",
       size: company?.size || "",
       location: company?.location || "",
-      assignedToId: company?.assignedToId || undefined,
+      assignedToId: company?.assignedToId || currentUser?.id || undefined,
       notes: company?.notes || "",
     },
   });
@@ -98,8 +100,11 @@ export function CompanyForm({
         assignedToId: company.assignedToId || undefined,
         notes: company.notes || "",
       });
+    } else if (currentUser?.id && !form.getValues("assignedToId")) {
+      // Set default assignedToId for new companies
+      form.setValue("assignedToId", currentUser.id);
     }
-  }, [company, form]);
+  }, [company, form, currentUser]);
 
   const onSubmit = async (data: CompanyFormData) => {
     setLoading(true);

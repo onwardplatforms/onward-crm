@@ -37,6 +37,7 @@ import { CompanyForm } from "./company-form";
 import { ContactForm } from "./contact-form";
 import { format } from "date-fns";
 import { currencySchema, formatCurrencyInput, parseCurrency, formatCurrency } from "@/lib/currency";
+import { useCurrentUser } from "@/lib/hooks/use-current-user";
 
 const dealSchema = z.object({
   name: z.string().min(1, "Deal name is required"),
@@ -72,6 +73,7 @@ export function DealForm({
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [companyFormOpen, setCompanyFormOpen] = useState(false);
   const [contactFormOpen, setContactFormOpen] = useState(false);
+  const { user: currentUser } = useCurrentUser();
 
   const form = useForm<DealFormData>({
     resolver: zodResolver(dealSchema),
@@ -83,7 +85,7 @@ export function DealForm({
       probability: deal?.probability || 0,
       companyId: deal?.companyId || undefined,
       contactId: deal?.contactId || undefined,
-      assignedToId: deal?.assignedToId || undefined,
+      assignedToId: deal?.assignedToId || currentUser?.id || undefined,
       notes: deal?.notes || "",
     },
   });
@@ -143,8 +145,11 @@ export function DealForm({
         assignedToId: deal.assignedToId || undefined,
         notes: deal.notes || "",
       });
+    } else if (currentUser?.id && !form.getValues("assignedToId")) {
+      // Set default assignedToId for new deals
+      form.setValue("assignedToId", currentUser.id);
     }
-  }, [deal, form]);
+  }, [deal, form, currentUser]);
 
   // Reset contacts filter when dialog opens/closes
   useEffect(() => {

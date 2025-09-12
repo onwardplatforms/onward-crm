@@ -24,6 +24,13 @@ export async function GET(
             email: true,
           },
         },
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
     
@@ -54,7 +61,7 @@ export async function PUT(
     const body = await request.json();
     
     // Extract contactIds and other data
-    const { contactIds, dealId, ...restData } = body;
+    const { contactIds, dealId, assignedToId, ...restData } = body;
     
     // First disconnect all existing contacts
     await prisma.activity.update({
@@ -72,6 +79,7 @@ export async function PUT(
       data: {
         ...restData,
         dealId: dealId === "none" ? null : dealId,
+        assignedToId: assignedToId === "unassigned" ? null : assignedToId,
         contacts: {
           connect: contactIds?.map((contactId: string) => ({ id: contactId })) || [],
         },
@@ -84,6 +92,13 @@ export async function PUT(
         },
         deal: true,
         user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        assignedTo: {
           select: {
             id: true,
             name: true,

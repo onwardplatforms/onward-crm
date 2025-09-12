@@ -33,6 +33,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { toast } from "sonner";
 import { ACTIVITY_TYPES } from "@/lib/types";
+import { useCurrentUser } from "@/lib/hooks/use-current-user";
 
 const activitySchema = z.object({
   type: z.string().min(1, "Type is required"),
@@ -41,6 +42,7 @@ const activitySchema = z.object({
   date: z.date().nullable().optional(),
   contactIds: z.array(z.string()).optional(),
   dealId: z.string().optional(),
+  assignedToId: z.string().optional(),
 });
 
 type ActivityFormData = z.infer<typeof activitySchema>;
@@ -67,6 +69,8 @@ export function ActivityForm({
   const [loading, setLoading] = useState(false);
   const [contacts, setContacts] = useState<any[]>([]);
   const [deals, setDeals] = useState<any[]>([]);
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const { user: currentUser } = useCurrentUser();
 
   const form = useForm<ActivityFormData>({
     resolver: zodResolver(activitySchema),
@@ -77,6 +81,7 @@ export function ActivityForm({
       date: activity?.date ? new Date(activity.date) : new Date(),
       contactIds: activity?.contacts?.map((c: any) => c.id) || (contactId ? [contactId] : []),
       dealId: activity?.dealId || dealId || undefined,
+      assignedToId: activity?.assignedToId || currentUser?.id || undefined,
     },
   });
 
@@ -102,9 +107,21 @@ export function ActivityForm({
     }
   };
 
+  const fetchTeamMembers = async () => {
+    try {
+      const res = await fetch("/api/users");
+      const data = await res.json();
+      setTeamMembers(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      setTeamMembers([]);
+    }
+  };
+
   useEffect(() => {
     fetchContacts();
     fetchDeals();
+    fetchTeamMembers();
   }, []);
 
   useEffect(() => {
@@ -116,9 +133,13 @@ export function ActivityForm({
         date: activity.date ? new Date(activity.date) : new Date(),
         contactIds: activity.contacts?.map((c: any) => c.id) || [],
         dealId: activity.dealId || undefined,
+        assignedToId: activity.assignedToId || undefined,
       });
+    } else if (currentUser?.id && !form.getValues("assignedToId")) {
+      // Set default assignedToId for new activities
+      form.setValue("assignedToId", currentUser.id);
     }
-  }, [activity, form]);
+  }, [activity, form, currentUser]);
 
   const onSubmit = async (data: ActivityFormData) => {
     setLoading(true);
@@ -286,6 +307,35 @@ export function ActivityForm({
                       {deals.map((deal) => (
                         <SelectItem key={deal.id} value={deal.id}>
                           {deal.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="assignedToId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assigned To</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select team member" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      {teamMembers.filter(m => m.isActive).map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
+                          {member.name || member.email}
                         </SelectItem>
                       ))}
                     </SelectContent>
