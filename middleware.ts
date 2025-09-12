@@ -11,13 +11,51 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // For now, we'll check for a session cookie
-  // Better Auth uses cookies for session management
+  // Check for session token cookie
   const sessionToken = request.cookies.get("better-auth.session_token");
-
-  if (!sessionToken && !pathname.startsWith("/api/")) {
+  
+  if (!sessionToken) {
     // Redirect to signin if not authenticated (for non-API routes)
-    return NextResponse.redirect(new URL("/signin", request.url));
+    if (!pathname.startsWith("/api/")) {
+      return NextResponse.redirect(new URL("/signin", request.url));
+    }
+    // For API routes, return 401
+    return NextResponse.json(
+      { error: "Unauthorized - No session" },
+      { status: 401 }
+    );
+  }
+
+  // For API routes, we need to get the session from Better Auth
+  // But we can't import auth directly in middleware due to Edge Runtime limitations
+  // So we'll make a request to our auth endpoint to validate the session
+  if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth")) {
+    try {
+      // Call our auth API to get session info
+      const sessionResponse = await fetch(new URL("/api/auth/get-session", request.url), {
+        headers: {
+          cookie: request.headers.get("cookie") || "",
+        },
+      });
+      
+      if (sessionResponse.ok) {
+        const session = await sessionResponse.json();
+        if (session?.user?.id) {
+          // Add user info to headers for API routes
+          const requestHeaders = new Headers(request.headers);
+          requestHeaders.set("x-user-id", session.user.id);
+          requestHeaders.set("x-user-email", session.user.email || "");
+          
+          return NextResponse.next({
+            request: {
+              headers: requestHeaders,
+            },
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Middleware session check error:", error);
+    }
   }
 
   return NextResponse.next();

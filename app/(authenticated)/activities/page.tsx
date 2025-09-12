@@ -125,21 +125,6 @@ export default function ActivitiesPage() {
     }
   };
 
-  const getActivityColor = (type: string) => {
-    switch (type) {
-      case 'call':
-        return "text-blue-600";
-      case 'email':
-        return "text-green-600";
-      case 'meeting':
-        return "text-purple-600";
-      case 'note':
-        return "text-gray-600";
-      default:
-        return "text-gray-600";
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -211,7 +196,7 @@ export default function ActivitiesPage() {
                   filteredActivities.map((activity) => (
                     <TableRow key={activity.id}>
                       <TableCell>
-                        <div className={cn("flex items-center gap-2", getActivityColor(activity.type))}>
+                        <div className="flex items-center gap-2">
                           {getActivityIcon(activity.type)}
                           <span className="text-sm font-medium">
                             {ACTIVITY_TYPES.find(t => t.value === activity.type)?.label}

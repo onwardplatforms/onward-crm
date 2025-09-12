@@ -35,8 +35,15 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // For now, use a hardcoded user ID until auth is implemented
-    const userId = "temp-user-id";
+    // Get the authenticated user ID from headers (set by middleware)
+    const userId = request.headers.get("x-user-id");
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
     
     // Handle "unassigned" value
     const { assignedToId, ...restData } = body;
@@ -73,8 +80,7 @@ export async function POST(request: NextRequest) {
           toPosition: newDeal.position,
           value: newDeal.value,
           probability: newDeal.probability,
-          // TODO: Add actual user ID when auth is implemented
-          changedById: null,
+          changedById: userId,
         },
       });
       

@@ -91,11 +91,19 @@ export function ContactForm({
 
   const fetchTeamMembers = async () => {
     try {
-      const res = await fetch("/api/users");
+      const res = await fetch("/api/users", {
+        credentials: 'include'
+      });
+      if (!res.ok) {
+        console.error("Failed to fetch team members:", res.status);
+        setTeamMembers([]);
+        return;
+      }
       const data = await res.json();
       setTeamMembers(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching team members:", error);
+      setTeamMembers([]);
     }
   };
 

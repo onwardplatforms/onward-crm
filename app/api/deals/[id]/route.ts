@@ -49,6 +49,9 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
+    
+    // Get the authenticated user ID from headers (set by middleware)
+    const userId = request.headers.get("x-user-id");
     console.log("Updating deal:", id, "with data:", body);
     
     // Get the current deal to check for stage changes
@@ -111,8 +114,7 @@ export async function PUT(
             toPosition: updateData.position || 0,
             value: updateData.value || currentDeal.value,
             probability: updateData.probability || currentDeal.probability,
-            // TODO: Add actual user ID when auth is implemented
-            changedById: null,
+            changedById: userId,
           },
         });
       }

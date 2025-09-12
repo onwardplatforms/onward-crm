@@ -39,8 +39,17 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // For now, use a hardcoded user ID until auth is implemented
-    const userId = "temp-user-id";
+    // Get the authenticated user ID from headers (set by middleware)
+    const userId = request.headers.get("x-user-id");
+    console.log("Creating company with user ID:", userId);
+    
+    if (!userId) {
+      console.error("No user ID found in headers");
+      return NextResponse.json(
+        { error: "Unauthorized - No user ID in request" },
+        { status: 401 }
+      );
+    }
     
     // Handle "unassigned" value
     const { assignedToId, ...restData } = body;

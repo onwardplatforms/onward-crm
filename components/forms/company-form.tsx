@@ -125,7 +125,9 @@ export function CompanyForm({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save company");
+        const errorData = await response.json();
+        console.error("Company save error:", errorData);
+        throw new Error(errorData.error || "Failed to save company");
       }
 
       toast.success(

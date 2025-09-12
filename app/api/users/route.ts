@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
         email: true,
         name: true,
         role: true,
-        avatar: true,
+        image: true,
         title: true,
         phone: true,
         isActive: true,
