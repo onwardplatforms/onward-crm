@@ -42,6 +42,7 @@ import { useCurrentUser } from "@/lib/hooks/use-current-user";
 const dealSchema = z.object({
   name: z.string().min(1, "Deal name is required"),
   value: currencySchema.optional(),
+  licenses: z.coerce.number().min(1).default(1),
   stage: z.string().min(1, "Stage is required"),
   closeDate: z.date().nullable().optional(),
   probability: z.coerce.number().min(0).max(100).optional(),
@@ -80,6 +81,7 @@ export function DealForm({
     defaultValues: {
       name: deal?.name || "",
       value: deal?.value || "",
+      licenses: deal?.licenses || 1,
       stage: deal?.stage || "lead",
       closeDate: deal?.closeDate ? new Date(deal.closeDate) : null,
       probability: deal?.probability || 0,
@@ -137,6 +139,7 @@ export function DealForm({
       form.reset({
         name: deal.name || "",
         value: deal.value || "",
+        licenses: deal.licenses || 1,
         stage: deal.stage || "lead",
         closeDate: deal.closeDate ? new Date(deal.closeDate) : null,
         probability: deal.probability || 0,
@@ -316,6 +319,28 @@ export function DealForm({
                 )}
               />
               
+              <FormField
+                control={form.control}
+                name="licenses"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Number of Licenses</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number"
+                        min="1"
+                        placeholder="1" 
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="stage"

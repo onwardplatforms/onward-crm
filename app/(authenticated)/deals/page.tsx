@@ -483,6 +483,11 @@ export default function DealsPage() {
                                 {deal.value && (
                                   <p className="text-sm font-semibold">
                                     {formatCurrency(deal.value)}
+                                    {deal.licenses && deal.licenses > 1 && (
+                                      <span className="text-xs text-muted-foreground ml-1">
+                                        ({deal.licenses} licenses)
+                                      </span>
+                                    )}
                                   </p>
                                 )}
                                 {deal.closeDate && (
@@ -779,6 +784,7 @@ export default function DealsPage() {
                     <TableRow>
                       <TableHead>Deal Name</TableHead>
                       <TableHead>Value</TableHead>
+                      <TableHead>Licenses</TableHead>
                       <TableHead>Stage</TableHead>
                       <TableHead>Company</TableHead>
                       <TableHead>Contact</TableHead>
@@ -809,6 +815,9 @@ export default function DealsPage() {
                             ) : (
                               <span className="text-muted-foreground">-</span>
                             )}
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm">{deal.licenses || 1}</span>
                           </TableCell>
                           <TableCell>
                             <Select

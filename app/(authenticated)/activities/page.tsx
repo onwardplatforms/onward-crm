@@ -94,21 +94,23 @@ export default function ActivitiesPage() {
     fetchActivities();
   };
 
-  const filteredActivities = activities.filter((activity) => {
-    const matchesSearch = 
-      activity.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      activity.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      activity.contacts?.some((contact: any) => 
-        contact.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        contact.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        contact.company?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-      ) ||
-      activity.deal?.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesType = typeFilter === "all" || activity.type === typeFilter;
-    
-    return matchesSearch && matchesType;
-  });
+  const filteredActivities = activities
+    .filter((activity) => {
+      const matchesSearch = 
+        activity.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        activity.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        activity.contacts?.some((contact: any) => 
+          contact.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          contact.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          contact.company?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        ) ||
+        activity.deal?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesType = typeFilter === "all" || activity.type === typeFilter;
+      
+      return matchesSearch && matchesType;
+    })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const getActivityIcon = (type: string) => {
     switch (type) {
