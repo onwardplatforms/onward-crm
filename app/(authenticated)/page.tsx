@@ -185,8 +185,9 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(totalPipeline)}</div>
-            <div className="flex items-center text-xs text-muted-foreground mt-1">
-              <span>{openDeals.length} open deals</span>
+            <div className="flex items-center text-xs mt-1">
+              <span className="font-medium">{openDeals.length}</span>
+              <span className="text-muted-foreground ml-1">open deals</span>
             </div>
           </CardContent>
         </Card>
@@ -200,14 +201,11 @@ export default function Dashboard() {
             <div className="text-2xl font-bold">{formatCurrency(revenueThisMonth)}</div>
             <div className="flex items-center text-xs mt-1">
               {revenueGrowth > 0 ? (
-                <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
+                <ArrowUp className="h-3 w-3 text-muted-foreground mr-1" />
               ) : (
-                <ArrowDown className="h-3 w-3 text-red-500 mr-1" />
+                <ArrowDown className="h-3 w-3 text-muted-foreground mr-1" />
               )}
-              <span className={cn(
-                "font-medium",
-                revenueGrowth > 0 ? "text-green-500" : "text-red-500"
-              )}>
+              <span className="font-medium">
                 {Math.abs(revenueGrowth).toFixed(1)}%
               </span>
               <span className="text-muted-foreground ml-1">vs last month</span>
@@ -224,8 +222,9 @@ export default function Dashboard() {
             <div className="text-2xl font-bold">
               {salesVelocity?.winRate ? salesVelocity.winRate.toFixed(1) : 0}%
             </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Avg deal: {formatCurrency(salesVelocity?.avgDealSize || 0)}
+            <div className="text-xs mt-1">
+              <span className="text-muted-foreground">Avg deal: </span>
+              <span className="font-medium">{formatCurrency(salesVelocity?.avgDealSize || 0)}</span>
             </div>
           </CardContent>
         </Card>
@@ -239,8 +238,9 @@ export default function Dashboard() {
             <div className="text-2xl font-bold">
               {formatCurrency(salesVelocity?.velocity || 0)}/day
             </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {salesVelocity?.avgCycleLength || 0} day avg cycle
+            <div className="text-xs mt-1">
+              <span className="font-medium">{salesVelocity?.avgCycleLength || 0}</span>
+              <span className="text-muted-foreground ml-1">day avg cycle</span>
             </div>
           </CardContent>
         </Card>
@@ -260,7 +260,10 @@ export default function Dashboard() {
                 <BarChart data={pipelineTrend}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="month" className="text-xs" />
-                  <YAxis className="text-xs" tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
+                  <YAxis 
+                    className="text-xs" 
+                    tickFormatter={(value) => formatCompactCurrency(value)}
+                  />
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
                     formatter={(value: any) => formatCurrency(value)}
