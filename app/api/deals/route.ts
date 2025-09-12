@@ -4,7 +4,19 @@ import { prisma } from "@/lib/db";
 // GET all deals
 export async function GET(request: NextRequest) {
   try {
+    const workspaceId = request.headers.get("x-workspace-id");
+    
+    if (!workspaceId) {
+      return NextResponse.json(
+        { error: "Workspace not found" },
+        { status: 400 }
+      );
+    }
+    
     const deals = await prisma.deal.findMany({
+      where: {
+        workspaceId,
+      },
       include: {
         company: true,
         contact: true,
@@ -35,13 +47,14 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // Get the authenticated user ID from headers (set by middleware)
+    // Get the authenticated user ID and workspace from headers (set by middleware)
     const userId = request.headers.get("x-user-id");
+    const workspaceId = request.headers.get("x-workspace-id");
     
-    if (!userId) {
+    if (!userId || !workspaceId) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
+        { error: !userId ? "Unauthorized" : "Workspace not found" },
+        { status: !userId ? 401 : 400 }
       );
     }
     
@@ -50,6 +63,7 @@ export async function POST(request: NextRequest) {
     const dealData = {
       ...restData,
       userId,
+      workspaceId,
       assignedToId: assignedToId === "unassigned" ? null : assignedToId,
     };
     

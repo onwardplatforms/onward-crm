@@ -1,14 +1,15 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 
-export async function GET(request: Request) {
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
+export async function GET(request: NextRequest) {
+  const userId = request.headers.get("x-user-id");
+  const workspaceId = request.headers.get("x-workspace-id");
 
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!userId || !workspaceId) {
+    return NextResponse.json(
+      { error: !userId ? "Unauthorized" : "Workspace not found" },
+      { status: !userId ? 401 : 400 }
+    );
   }
 
   try {
@@ -17,7 +18,8 @@ export async function GET(request: Request) {
 
     const notifications = await prisma.notification.findMany({
       where: {
-        userId: session.user.id,
+        userId,
+        workspaceId,
         ...(unreadOnly && { read: false }),
       },
       include: {
@@ -43,7 +45,8 @@ export async function GET(request: Request) {
     // Get unread count
     const unreadCount = await prisma.notification.count({
       where: {
-        userId: session.user.id,
+        userId,
+        workspaceId,
         read: false,
       },
     });
@@ -59,13 +62,15 @@ export async function GET(request: Request) {
 }
 
 // Mark notifications as read
-export async function PUT(request: Request) {
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
+export async function PUT(request: NextRequest) {
+  const userId = request.headers.get("x-user-id");
+  const workspaceId = request.headers.get("x-workspace-id");
 
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!userId || !workspaceId) {
+    return NextResponse.json(
+      { error: !userId ? "Unauthorized" : "Workspace not found" },
+      { status: !userId ? 401 : 400 }
+    );
   }
 
   try {
@@ -76,7 +81,8 @@ export async function PUT(request: Request) {
       await prisma.notification.updateMany({
         where: {
           id: { in: notificationIds },
-          userId: session.user.id,
+          userId,
+          workspaceId,
         },
         data: {
           read: true,
@@ -86,7 +92,8 @@ export async function PUT(request: Request) {
       // Mark all notifications as read
       await prisma.notification.updateMany({
         where: {
-          userId: session.user.id,
+          userId,
+          workspaceId,
           read: false,
         },
         data: {

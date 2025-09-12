@@ -30,6 +30,7 @@ export async function middleware(request: NextRequest) {
   // But we can't import auth directly in middleware due to Edge Runtime limitations
   // So we'll make a request to our auth endpoint to validate the session
   if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth")) {
+    console.log("Middleware: Processing API route:", pathname);
     try {
       // Call our auth API to get session info
       const sessionResponse = await fetch(new URL("/api/auth/get-session", request.url), {
@@ -38,13 +39,21 @@ export async function middleware(request: NextRequest) {
         },
       });
       
+      console.log("Middleware: Session response status:", sessionResponse.status);
+      
       if (sessionResponse.ok) {
         const session = await sessionResponse.json();
+        console.log("Middleware: Session data:", JSON.stringify(session, null, 2));
+        
         if (session?.user?.id) {
-          // Add user info to headers for API routes
+          // Add user info and workspace to headers for API routes
           const requestHeaders = new Headers(request.headers);
           requestHeaders.set("x-user-id", session.user.id);
           requestHeaders.set("x-user-email", session.user.email || "");
+          requestHeaders.set("x-session-id", session.session?.id || "");
+          requestHeaders.set("x-workspace-id", session.workspace?.id || "");
+          
+          console.log("Middleware: Setting workspace ID:", session.workspace?.id);
           
           return NextResponse.next({
             request: {

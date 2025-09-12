@@ -4,7 +4,19 @@ import { prisma } from "@/lib/db";
 // GET all companies
 export async function GET(request: NextRequest) {
   try {
+    const workspaceId = request.headers.get("x-workspace-id");
+    
+    if (!workspaceId) {
+      return NextResponse.json(
+        { error: "Workspace not found" },
+        { status: 400 }
+      );
+    }
+    
     const companies = await prisma.company.findMany({
+      where: {
+        workspaceId,
+      },
       include: {
         _count: {
           select: {
@@ -39,15 +51,16 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // Get the authenticated user ID from headers (set by middleware)
+    // Get the authenticated user ID and workspace from headers (set by middleware)
     const userId = request.headers.get("x-user-id");
-    console.log("Creating company with user ID:", userId);
+    const workspaceId = request.headers.get("x-workspace-id");
+    console.log("Creating company with user ID:", userId, "and workspace ID:", workspaceId);
     
-    if (!userId) {
-      console.error("No user ID found in headers");
+    if (!userId || !workspaceId) {
+      console.error("Missing required headers - userId:", userId, "workspaceId:", workspaceId);
       return NextResponse.json(
-        { error: "Unauthorized - No user ID in request" },
-        { status: 401 }
+        { error: !userId ? "Unauthorized" : "Workspace not found" },
+        { status: !userId ? 401 : 400 }
       );
     }
     
@@ -56,6 +69,7 @@ export async function POST(request: NextRequest) {
     const companyData = {
       ...restData,
       userId,
+      workspaceId,
       assignedToId: assignedToId === "unassigned" ? null : assignedToId,
     };
     

@@ -8,8 +8,20 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const deal = await prisma.deal.findUnique({
-      where: { id },
+    const workspaceId = request.headers.get("x-workspace-id");
+    
+    if (!workspaceId) {
+      return NextResponse.json(
+        { error: "Workspace not found" },
+        { status: 400 }
+      );
+    }
+    
+    const deal = await prisma.deal.findFirst({
+      where: { 
+        id,
+        workspaceId 
+      },
       include: {
         company: true,
         contact: true,
@@ -50,13 +62,25 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
     
-    // Get the authenticated user ID from headers (set by middleware)
+    // Get the authenticated user ID and workspace from headers (set by middleware)
     const userId = request.headers.get("x-user-id");
+    const workspaceId = request.headers.get("x-workspace-id");
+    
+    if (!workspaceId) {
+      return NextResponse.json(
+        { error: "Workspace not found" },
+        { status: 400 }
+      );
+    }
+    
     console.log("Updating deal:", id, "with data:", body);
     
     // Get the current deal to check for stage changes
-    const currentDeal = await prisma.deal.findUnique({
-      where: { id },
+    const currentDeal = await prisma.deal.findFirst({
+      where: { 
+        id,
+        workspaceId 
+      },
       select: {
         stage: true,
         position: true,
@@ -88,7 +112,10 @@ export async function PUT(
     const deal = await prisma.$transaction(async (tx) => {
       // Update the deal
       const updatedDeal = await tx.deal.update({
-        where: { id },
+        where: { 
+          id,
+          workspaceId 
+        },
         data: updateData,
         include: {
           company: true,
@@ -125,8 +152,11 @@ export async function PUT(
     // Create notification if someone else updated the deal
     if (isStageChanging && userId) {
       // Get full deal info for notification
-      const dealInfo = await prisma.deal.findUnique({
-        where: { id },
+      const dealInfo = await prisma.deal.findFirst({
+        where: { 
+          id,
+          workspaceId 
+        },
         include: {
           user: true,
           assignedTo: true,
@@ -168,6 +198,7 @@ export async function PUT(
                 message: `${changer?.name || changer?.email || "Someone"} moved the deal from ${currentDeal.stage} to ${updateData.stage}`,
                 userId: notifyUserId,
                 dealId: id,
+                workspaceId,
               },
             });
           }
@@ -193,8 +224,20 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    const workspaceId = request.headers.get("x-workspace-id");
+    
+    if (!workspaceId) {
+      return NextResponse.json(
+        { error: "Workspace not found" },
+        { status: 400 }
+      );
+    }
+    
     await prisma.deal.delete({
-      where: { id },
+      where: { 
+        id,
+        workspaceId 
+      },
     });
     
     return NextResponse.json({ success: true });
