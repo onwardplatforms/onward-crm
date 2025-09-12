@@ -297,7 +297,6 @@ export default function Dashboard() {
                     formatter={(value: any) => formatCurrency(value)}
                   />
                   <Bar dataKey="weighted" fill="hsl(var(--chart-1))" radius={[12, 12, 0, 0]} />
-                  <Bar dataKey="bestCase" fill="hsl(var(--chart-2))" opacity={0.2} radius={[12, 12, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
@@ -453,7 +452,7 @@ export default function Dashboard() {
                     closedWon: 0,
                     totalValue: 0,
                     activitiesCount: 0,
-                    name: users.find(u => u.id === owner)?.name || (owner === currentUser?.id ? currentUser?.name : 'Unassigned'),
+                    name: users.find(u => u.id === owner)?.name || 'Unassigned',
                   };
                 }
                 if (deal.stage === 'closed-won') {

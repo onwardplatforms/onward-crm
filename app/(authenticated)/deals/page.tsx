@@ -168,12 +168,22 @@ export default function DealsPage() {
     e.dataTransfer.setData("dealId", deal.id);
     e.dataTransfer.effectAllowed = "move";
     
-    // Set dragged deal immediately to hide original
-    setDraggedDeal(deal.id);
-    
-    // Use a simple transform for the drag cursor since browser drag images don't animate
+    // Create a clone for the drag image before hiding the original
     const dragElement = e.currentTarget as HTMLElement;
-    dragElement.style.cursor = "grabbing";
+    const clone = dragElement.cloneNode(true) as HTMLElement;
+    clone.style.position = 'absolute';
+    clone.style.top = '-1000px';
+    clone.style.opacity = '0.8';
+    document.body.appendChild(clone);
+    e.dataTransfer.setDragImage(clone, e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+    
+    // Clean up the clone after a brief delay
+    setTimeout(() => {
+      document.body.removeChild(clone);
+    }, 0);
+    
+    // Set dragged deal to hide original
+    setDraggedDeal(deal.id);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -368,9 +378,9 @@ export default function DealsPage() {
         </TabsList>
         
         <TabsContent value="pipeline" className="flex-1 mt-1 overflow-hidden p-1">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-6 h-full">
-            {/* Active stages - all except closed-won and closed-lost */}
-            {DEAL_STAGES.slice(0, 5).map((stage) => {
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-5 h-full">
+            {/* Active stages - only prospect through proposal */}
+            {DEAL_STAGES.slice(0, 4).map((stage) => {
               const stageDeals = filteredDeals
                 .filter(d => d.stage === stage.value)
                 .sort((a, b) => (a.position || 0) - (b.position || 0));
@@ -392,7 +402,7 @@ export default function DealsPage() {
                     e.currentTarget.classList.remove("ring-2", "ring-primary");
                   }}
                 >
-                  <CardHeader className="pb-2 flex-shrink-0">
+                  <CardHeader className="pb-2 flex-shrink-0 min-h-[5.5rem]">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm font-medium">
                         {stage.label}
@@ -408,7 +418,7 @@ export default function DealsPage() {
                       </p>
                     )}
                   </CardHeader>
-                  <CardContent className="flex-1 overflow-hidden px-3 pt-0 pb-3">
+                  <CardContent className="flex-1 overflow-hidden px-3 pt-2 pb-3">
                     <div className="space-y-3 h-full overflow-y-auto px-1 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
                       {/* Drop zone for first position */}
                       {stageDeals.length > 0 && (
@@ -427,7 +437,7 @@ export default function DealsPage() {
                         </div>
                       )}
                       {stageDeals.length === 0 ? (
-                        <p className="text-center text-sm text-muted-foreground py-8">
+                        <p className="text-center text-sm text-muted-foreground">
                           No deals in this stage
                         </p>
                       ) : (
@@ -546,18 +556,21 @@ export default function DealsPage() {
                     setShowDropZones(false);
                   }}
                 >
-                  <CardHeader className="pb-2 flex-shrink-0">
+                  <CardHeader className="pb-2 flex-shrink-0 min-h-[5.5rem]">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm font-medium">
                         Closed
                       </CardTitle>
                       <Badge variant="secondary">{closedWonDeals.length + closedLostDeals.length}</Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground mb-1">
                       {formatCompactCurrency(totalClosedValue)}
                     </p>
+                    <p className="text-xs text-muted-foreground/70">
+                      Completed deals - won or lost
+                    </p>
                   </CardHeader>
-                  <CardContent className="flex-1 overflow-hidden px-3 pt-0 pb-3">
+                  <CardContent className="flex-1 overflow-hidden px-3 pt-2 pb-3">
                     <div className="h-full relative">
                       {/* Drop zones when dragging */}
                       {showDropZones && draggedDeal && (
