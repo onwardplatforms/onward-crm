@@ -22,9 +22,9 @@ const navigation = {
     { name: "Companies", href: "/companies", icon: Building2 },
     { name: "Contacts", href: "/contacts", icon: Users },
     { name: "Deals", href: "/deals", icon: Briefcase },
-  ],
-  workspace: [
     { name: "Activities", href: "/activities", icon: Activity },
+  ],
+  organization: [
     { name: "Team", href: "/team", icon: UsersRound },
   ],
 };
@@ -75,12 +75,12 @@ export function Sidebar() {
           {navigation.crm.map(renderNavItem)}
         </div>
         
-        {/* Workspace Section */}
+        {/* Organization Section */}
         <div className="space-y-1">
           <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Workspace
+            Organization
           </p>
-          {navigation.workspace.map(renderNavItem)}
+          {navigation.organization.map(renderNavItem)}
         </div>
       </nav>
       <div className="border-t p-3">

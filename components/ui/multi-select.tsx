@@ -108,9 +108,6 @@ export function MultiSelect({
                 </div>
                 <div className="flex-1">
                   <div>{option.label}</div>
-                  {option.company && (
-                    <div className="text-xs text-muted-foreground">{option.company}</div>
-                  )}
                 </div>
               </CommandItem>
             ))}

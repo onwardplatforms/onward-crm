@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, ArrowUpRight, MapPin, Users, MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { Plus, Search, ArrowUpRight, MoreHorizontal, Pencil, Trash } from "lucide-react";
 import { CompanyForm } from "@/components/forms/company-form";
 import { toast } from "sonner";
 
@@ -163,16 +163,10 @@ export default function CompaniesPage() {
                       <TableCell>{company.industry}</TableCell>
                       <TableCell>{company.size}</TableCell>
                       <TableCell>
-                        {company.location && (
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {company.location}
-                          </div>
-                        )}
+                        {company.location || <span className="text-muted-foreground">-</span>}
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary">
-                          <Users className="h-3 w-3 mr-1" />
                           {company._count?.contacts || 0}
                         </Badge>
                       </TableCell>

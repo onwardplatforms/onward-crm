@@ -21,8 +21,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { 
-  Plus, Search, Mail, Phone, UserCheck, UserX, 
-  MoreHorizontal, Pencil, Shield, User 
+  Plus, Search, UserCheck, UserX, 
+  MoreHorizontal, Pencil
 } from "lucide-react";
 import { UserForm } from "@/components/forms/user-form";
 import { toast } from "sonner";
@@ -185,9 +185,8 @@ export default function TeamPage() {
                       <TableCell>
                         <a
                           href={`mailto:${member.email}`}
-                          className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+                          className="text-muted-foreground hover:text-foreground transition-colors"
                         >
-                          <Mail className="h-3 w-3" />
                           {member.email}
                         </a>
                       </TableCell>
@@ -195,9 +194,8 @@ export default function TeamPage() {
                         {member.phone ? (
                           <a
                             href={`tel:${member.phone}`}
-                            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+                            className="text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            <Phone className="h-3 w-3" />
                             {member.phone}
                           </a>
                         ) : (
@@ -208,14 +206,9 @@ export default function TeamPage() {
                         {member.title || <span className="text-muted-foreground">-</span>}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1">
-                          {member.role === "admin" && (
-                            <Shield className="h-3 w-3 text-yellow-600" />
-                          )}
-                          <Badge variant="outline">
-                            {member.role === "admin" ? "Admin" : "Member"}
-                          </Badge>
-                        </div>
+                        <Badge variant="outline">
+                          {member.role === "admin" ? "Admin" : "Member"}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge variant={member.isActive ? "default" : "secondary"}>

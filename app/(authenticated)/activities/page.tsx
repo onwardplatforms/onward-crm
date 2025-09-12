@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import { 
   Plus, Search, Phone, Mail, Calendar, FileText,
-  MoreHorizontal, Pencil, Trash, Building2, User, Briefcase
+  MoreHorizontal, Pencil, Trash
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -176,7 +176,8 @@ export default function ActivitiesPage() {
                 <TableRow>
                   <TableHead>Type</TableHead>
                   <TableHead>Subject</TableHead>
-                  <TableHead>Related To</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Deal</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Created By</TableHead>
                   <TableHead>Description</TableHead>
@@ -186,7 +187,7 @@ export default function ActivitiesPage() {
               <TableBody>
                 {filteredActivities.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground">
                       {searchTerm || typeFilter !== "all"
                         ? "No activities found matching your filters."
                         : "No activities logged yet. Start by logging your first activity."}
@@ -207,41 +208,34 @@ export default function ActivitiesPage() {
                         {activity.subject}
                       </TableCell>
                       <TableCell>
-                        <div className="space-y-1">
-                          {activity.contacts && activity.contacts.length > 0 && (
-                            <div className="space-y-1">
-                              {activity.contacts.map((contact: any, index: number) => (
-                                <div key={contact.id} className="text-sm">
-                                  <div className="flex items-center gap-1">
-                                    <User className="h-3 w-3" />
-                                    {contact.firstName} {contact.lastName}
+                        {activity.contacts && activity.contacts.length > 0 ? (
+                          <div className="space-y-1">
+                            {activity.contacts.map((contact: any) => (
+                              <div key={contact.id} className="text-sm">
+                                <div>{contact.firstName} {contact.lastName}</div>
+                                {contact.company && (
+                                  <div className="text-muted-foreground text-xs">
+                                    {contact.company.name}
                                   </div>
-                                  {contact.company && (
-                                    <div className="flex items-center gap-1 text-muted-foreground ml-4">
-                                      <Building2 className="h-3 w-3" />
-                                      {contact.company.name}
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          {activity.deal && (
-                            <div className="flex items-center gap-1 text-sm">
-                              <Briefcase className="h-3 w-3" />
-                              {activity.deal.name}
-                            </div>
-                          )}
-                          {(!activity.contacts || activity.contacts.length === 0) && !activity.deal && (
-                            <span className="text-muted-foreground text-sm">-</span>
-                          )}
-                        </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1 text-sm">
-                          <Calendar className="h-3 w-3" />
+                        {activity.deal ? (
+                          <span className="text-sm">{activity.deal.name}</span>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm">
                           {format(new Date(activity.date), "MMM d, yyyy")}
-                        </div>
+                        </span>
                       </TableCell>
                       <TableCell>
                         {activity.user ? (

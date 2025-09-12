@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, Mail, Phone, Building2, MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Pencil, Trash, ExternalLink } from "lucide-react";
 import { ContactForm } from "@/components/forms/contact-form";
 import { toast } from "sonner";
 
@@ -147,8 +147,7 @@ export default function ContactsPage() {
                             {contact.firstName} {contact.lastName}
                           </p>
                           {contact.company && (
-                            <p className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Building2 className="h-3 w-3" />
+                            <p className="text-sm text-muted-foreground">
                               {contact.company.name}
                             </p>
                           )}
@@ -158,9 +157,8 @@ export default function ContactsPage() {
                         {contact.email ? (
                           <a
                             href={`mailto:${contact.email}`}
-                            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+                            className="text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            <Mail className="h-3 w-3" />
                             {contact.email}
                           </a>
                         ) : (
@@ -171,9 +169,8 @@ export default function ContactsPage() {
                         {contact.phone ? (
                           <a
                             href={`tel:${contact.phone}`}
-                            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+                            className="text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            <Phone className="h-3 w-3" />
                             {contact.phone}
                           </a>
                         ) : (

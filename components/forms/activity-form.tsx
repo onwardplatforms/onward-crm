@@ -254,7 +254,6 @@ export function ActivityForm({
                       options={contacts.map((contact) => ({
                         value: contact.id,
                         label: `${contact.firstName} ${contact.lastName}`,
-                        company: contact.company?.name,
                       }))}
                       selected={field.value || []}
                       onChange={field.onChange}

@@ -28,8 +28,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { 
-  Plus, Search, DollarSign, Calendar, TrendingUp, 
-  MoreHorizontal, Pencil, Trash, Building2, User, GripVertical 
+  Plus, Search, 
+  MoreHorizontal, Pencil, Trash, GripVertical 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DEAL_STAGES } from "@/lib/types";
@@ -319,7 +319,6 @@ export default function DealsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Pipeline</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -333,7 +332,6 @@ export default function DealsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Average Deal Size</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -344,7 +342,6 @@ export default function DealsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Closing This Month</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{closingThisMonth.length}</div>
@@ -356,7 +353,6 @@ export default function DealsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Win Rate</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{winRate.toFixed(0)}%</div>
@@ -475,14 +471,12 @@ export default function DealsPage() {
                                   {deal.name}
                                 </p>
                                 {deal.company && (
-                                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <Building2 className="h-3 w-3" />
+                                  <p className="text-xs text-muted-foreground">
                                     {deal.company.name}
                                   </p>
                                 )}
                                 {deal.contact && (
-                                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <User className="h-3 w-3" />
+                                  <p className="text-xs text-muted-foreground">
                                     {deal.contact.firstName} {deal.contact.lastName}
                                   </p>
                                 )}
@@ -835,30 +829,23 @@ export default function DealsPage() {
                           </TableCell>
                           <TableCell>
                             {deal.company ? (
-                              <div className="flex items-center gap-1">
-                                <Building2 className="h-3 w-3" />
-                                {deal.company.name}
-                              </div>
+                              <span>{deal.company.name}</span>
                             ) : (
                               <span className="text-muted-foreground">-</span>
                             )}
                           </TableCell>
                           <TableCell>
                             {deal.contact ? (
-                              <div className="flex items-center gap-1">
-                                <User className="h-3 w-3" />
+                              <span>
                                 {deal.contact.firstName} {deal.contact.lastName}
-                              </div>
+                              </span>
                             ) : (
                               <span className="text-muted-foreground">-</span>
                             )}
                           </TableCell>
                           <TableCell>
                             {deal.closeDate ? (
-                              <div className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                {format(new Date(deal.closeDate), "MMM d, yyyy")}
-                              </div>
+                              <span>{format(new Date(deal.closeDate), "MMM d, yyyy")}</span>
                             ) : (
                               <span className="text-muted-foreground">-</span>
                             )}

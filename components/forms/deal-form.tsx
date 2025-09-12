@@ -68,6 +68,7 @@ export function DealForm({
   const [loading, setLoading] = useState(false);
   const [companies, setCompanies] = useState<any[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);
+  const [allContacts, setAllContacts] = useState<any[]>([]);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [companyFormOpen, setCompanyFormOpen] = useState(false);
   const [contactFormOpen, setContactFormOpen] = useState(false);
@@ -102,9 +103,12 @@ export function DealForm({
     try {
       const res = await fetch("/api/contacts");
       const data = await res.json();
-      setContacts(Array.isArray(data) ? data : []);
+      const contactsList = Array.isArray(data) ? data : [];
+      setAllContacts(contactsList);
+      setContacts(contactsList);
     } catch (error) {
       console.error("Error fetching contacts:", error);
+      setAllContacts([]);
       setContacts([]);
     }
   };
@@ -141,6 +145,22 @@ export function DealForm({
       });
     }
   }, [deal, form]);
+
+  // Reset contacts filter when dialog opens/closes
+  useEffect(() => {
+    if (open) {
+      // When opening, if there's a selected company, filter contacts
+      const companyId = form.getValues("companyId");
+      if (companyId) {
+        const filteredContacts = allContacts.filter(
+          contact => !contact.companyId || contact.companyId === companyId
+        );
+        setContacts(filteredContacts);
+      } else {
+        setContacts(allContacts);
+      }
+    }
+  }, [open, allContacts, form]);
 
   const onSubmit = async (data: DealFormData) => {
     setLoading(true);
@@ -201,6 +221,33 @@ export function DealForm({
       if (defaultProbabilities[value] !== undefined) {
         form.setValue("probability", defaultProbabilities[value]);
       }
+    }
+  };
+
+  // Handle contact selection - auto-populate company
+  const handleContactChange = (contactId: string) => {
+    form.setValue("contactId", contactId);
+    
+    // Find the selected contact and auto-populate their company
+    const selectedContact = allContacts.find(c => c.id === contactId);
+    if (selectedContact?.companyId) {
+      form.setValue("companyId", selectedContact.companyId);
+    }
+  };
+
+  // Handle company selection - filter contacts
+  const handleCompanyChange = (companyId: string) => {
+    form.setValue("companyId", companyId);
+    
+    // Filter contacts to show only those from the selected company (plus unassigned)
+    if (companyId) {
+      const filteredContacts = allContacts.filter(
+        contact => !contact.companyId || contact.companyId === companyId
+      );
+      setContacts(filteredContacts);
+    } else {
+      // If no company selected, show all contacts
+      setContacts(allContacts);
     }
   };
 
@@ -349,13 +396,52 @@ export function DealForm({
 
             <FormField
               control={form.control}
+              name="contactId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact (Optional)</FormLabel>
+                  <div className="flex gap-2">
+                    <Select
+                      onValueChange={handleContactChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Select a contact" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {contacts.map((contact) => (
+                          <SelectItem key={contact.id} value={contact.id}>
+                            {contact.firstName} {contact.lastName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setContactFormOpen(true)}
+                      title="Add new contact"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="companyId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Company (Optional)</FormLabel>
                   <div className="flex gap-2">
                     <Select
-                      onValueChange={field.onChange}
+                      onValueChange={handleCompanyChange}
                       value={field.value}
                     >
                       <FormControl>
@@ -377,46 +463,6 @@ export function DealForm({
                       size="icon"
                       onClick={() => setCompanyFormOpen(true)}
                       title="Add new company"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="contactId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact (Optional)</FormLabel>
-                  <div className="flex gap-2">
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="flex-1">
-                          <SelectValue placeholder="Select a contact" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {contacts.map((contact) => (
-                          <SelectItem key={contact.id} value={contact.id}>
-                            {contact.firstName} {contact.lastName}
-                            {contact.company && ` - ${contact.company.name}`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setContactFormOpen(true)}
-                      title="Add new contact"
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
