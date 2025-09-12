@@ -54,6 +54,9 @@ model User {
   // Notifications
   notifications        Notification[]
   notificationPreference NotificationPreference?
+  
+  // Workspace invites sent by this user
+  sentInvites          WorkspaceInvite[]
 }
 
 model Workspace {
@@ -65,6 +68,9 @@ model Workspace {
   
   // Workspace members
   users     UserWorkspace[]
+  
+  // Workspace invites
+  invites   WorkspaceInvite[]
   
   // Workspace data
   contacts    Contact[]
@@ -86,6 +92,29 @@ model UserWorkspace {
   @@unique([userId, workspaceId])
   @@index([userId])
   @@index([workspaceId])
+}
+
+model WorkspaceInvite {
+  id          String   @id @default(cuid())
+  email       String
+  role        String   @default("member") // "admin", "member"
+  token       String   @unique @default(cuid())
+  status      String   @default("pending") // "pending", "accepted", "declined", "expired"
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  invitedById String
+  invitedBy   User @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+  
+  // Related notifications
+  notifications Notification[]
+  
+  @@index([workspaceId])
+  @@index([email])
+  @@index([token])
 }
 
 model Session {
@@ -312,7 +341,7 @@ model DealTransition {
 
 model Notification {
   id        String   @id @default(cuid())
-  type      String   // "activity_reminder" or "deal_update"
+  type      String   // "activity_reminder", "deal_update", "workspace_invite", "invite_accepted"
   title     String
   message   String
   read      Boolean  @default(false)
@@ -329,6 +358,8 @@ model Notification {
   activity   Activity? @relation(fields: [activityId], references: [id], onDelete: Cascade)
   dealId     String?
   deal       Deal?     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  inviteId   String?
+  invite     WorkspaceInvite? @relation(fields: [inviteId], references: [id], onDelete: Cascade)
   
   @@index([workspaceId])
   @@index([userId])

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, Check, Calendar, Briefcase } from "lucide-react";
+import { Bell, Check, Calendar, Briefcase, UserPlus, UserCheck, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Notification {
   id: string;
@@ -23,12 +24,14 @@ interface Notification {
   createdAt: string;
   activity?: any;
   deal?: any;
+  invite?: any;
 }
 
 export function NotificationDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const [processingInvites, setProcessingInvites] = useState<Set<string>>(new Set());
 
   const fetchNotifications = async () => {
     try {
@@ -71,10 +74,16 @@ export function NotificationDropdown() {
     }
   };
 
-  const handleNotificationClick = (notification: Notification) => {
+  const handleNotificationClick = async (notification: Notification) => {
+    // Don't do anything for workspace invites - they have their own buttons
+    if (notification.type === "workspace_invite") {
+      return;
+    }
+    
     if (!notification.read) {
       markAsRead([notification.id]);
     }
+    
     setOpen(false);
     
     // Navigate to relevant page based on notification type
@@ -83,6 +92,45 @@ export function NotificationDropdown() {
     } else if (notification.type === "deal_update" && notification.deal) {
       window.location.href = "/deals";
     }
+  };
+
+  const handleAcceptInvite = async (notification: Notification) => {
+    if (!notification.invite) return;
+    
+    setProcessingInvites(prev => new Set(prev).add(notification.id));
+    
+    try {
+      const response = await fetch(`/api/invites/${notification.invite.token}/accept`, {
+        method: "POST",
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        toast.success(data.message || "Successfully joined workspace");
+        // Mark notification as read
+        markAsRead([notification.id]);
+        // Reload to update workspaces
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        const error = await response.json();
+        toast.error(error.error || "Failed to accept invitation");
+      }
+    } catch (error) {
+      console.error("Error accepting invite:", error);
+      toast.error("Failed to accept invitation");
+    } finally {
+      setProcessingInvites(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(notification.id);
+        return newSet;
+      });
+    }
+  };
+
+  const handleDeclineInvite = async (notificationId: string) => {
+    // Just mark the notification as read for now
+    markAsRead([notificationId]);
+    toast.info("Invitation declined");
   };
 
   const markAllAsRead = () => {
@@ -102,6 +150,10 @@ export function NotificationDropdown() {
         return <Calendar className="h-4 w-4" />;
       case "deal_update":
         return <Briefcase className="h-4 w-4" />;
+      case "workspace_invite":
+        return <UserPlus className="h-4 w-4" />;
+      case "invite_accepted":
+        return <UserCheck className="h-4 w-4" />;
       default:
         return <Bell className="h-4 w-4" />;
     }
@@ -141,32 +193,68 @@ export function NotificationDropdown() {
             </div>
           ) : (
             notifications.map((notification) => (
-              <DropdownMenuItem
+              <div
                 key={notification.id}
                 className={cn(
-                  "flex items-start gap-3 p-3 cursor-pointer",
-                  !notification.read && "bg-muted/50"
+                  "p-3 border-b last:border-b-0",
+                  !notification.read && "bg-muted/50",
+                  notification.type !== "workspace_invite" && "cursor-pointer hover:bg-accent"
                 )}
                 onClick={() => handleNotificationClick(notification)}
               >
-                <div className="mt-0.5">{getIcon(notification.type)}</div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {notification.title}
-                  </p>
-                  <p className="text-xs text-muted-foreground line-clamp-2">
-                    {notification.message}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(notification.createdAt), {
-                      addSuffix: true,
-                    })}
-                  </p>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5">{getIcon(notification.type)}</div>
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {notification.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {notification.message}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(notification.createdAt), {
+                        addSuffix: true,
+                      })}
+                    </p>
+                    {notification.type === "workspace_invite" && notification.invite && (
+                      <div className="flex gap-2 mt-2">
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAcceptInvite(notification);
+                          }}
+                          disabled={processingInvites.has(notification.id)}
+                        >
+                          {processingInvites.has(notification.id) ? (
+                            "Accepting..."
+                          ) : (
+                            <>
+                              <Check className="h-3 w-3 mr-1" />
+                              Accept
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeclineInvite(notification.id);
+                          }}
+                          disabled={processingInvites.has(notification.id)}
+                        >
+                          <X className="h-3 w-3 mr-1" />
+                          Decline
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  {!notification.read && (
+                    <div className="h-2 w-2 rounded-full bg-blue-500 mt-1.5" />
+                  )}
                 </div>
-                {!notification.read && (
-                  <div className="h-2 w-2 rounded-full bg-blue-500 mt-1.5" />
-                )}
-              </DropdownMenuItem>
+              </div>
             ))
           )}
         </ScrollArea>

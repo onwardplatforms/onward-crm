@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check, ChevronsUpDown, Building2, Plus, Settings2 } from "lucide-react";
+import { Check, ChevronsUpDown, Building2, Plus, Settings2, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { WorkspaceInviteModal } from "@/components/workspace-invite-modal";
 
 interface Workspace {
   id: string;
@@ -50,6 +51,7 @@ export function WorkspaceSelector({ className }: WorkspaceSelectorProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingName, setEditingName] = useState("");
   const [savingName, setSavingName] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const router = useRouter();
 
   const fetchWorkspaces = async () => {
@@ -204,6 +206,17 @@ export function WorkspaceSelector({ className }: WorkspaceSelectorProps) {
             </CommandGroup>
             <CommandSeparator />
             <CommandGroup>
+              {(currentWorkspace.role === "owner" || currentWorkspace.role === "admin") && (
+                <CommandItem
+                  onSelect={() => {
+                    setInviteModalOpen(true);
+                    setOpen(false);
+                  }}
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Invite to Workspace
+                </CommandItem>
+              )}
               {currentWorkspace.role === "owner" && (
                 <CommandItem
                   onSelect={() => {
@@ -266,6 +279,13 @@ export function WorkspaceSelector({ className }: WorkspaceSelectorProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <WorkspaceInviteModal
+        open={inviteModalOpen}
+        onOpenChange={setInviteModalOpen}
+        workspaceId={currentWorkspace.id}
+        workspaceName={currentWorkspace.name}
+      />
     </>
   );
 }

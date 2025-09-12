@@ -19,7 +19,10 @@ export async function GET(request: NextRequest) {
     const notifications = await prisma.notification.findMany({
       where: {
         userId,
-        workspaceId,
+        OR: [
+          { workspaceId },
+          { type: "workspace_invite" }, // Include workspace invites regardless of workspace
+        ],
         ...(unreadOnly && { read: false }),
       },
       include: {
@@ -35,6 +38,12 @@ export async function GET(request: NextRequest) {
             contact: true,
           },
         },
+        invite: {
+          include: {
+            workspace: true,
+            invitedBy: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -46,7 +55,10 @@ export async function GET(request: NextRequest) {
     const unreadCount = await prisma.notification.count({
       where: {
         userId,
-        workspaceId,
+        OR: [
+          { workspaceId },
+          { type: "workspace_invite" },
+        ],
         read: false,
       },
     });
