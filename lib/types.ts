@@ -1,7 +1,8 @@
 export const DEAL_STAGES = [
   { value: 'lead', label: 'Lead' },
   { value: 'qualified', label: 'Qualified' },
-  { value: 'proposal', label: 'Proposal' },
+  { value: 'demo', label: 'Demo' },
+  { value: 'trial', label: 'Trial' },
   { value: 'negotiation', label: 'Negotiation' },
   { value: 'closed-won', label: 'Closed Won' },
   { value: 'closed-lost', label: 'Closed Lost' },

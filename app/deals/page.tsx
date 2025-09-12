@@ -39,6 +39,7 @@ export default function DealsPage() {
   const [selectedDeal, setSelectedDeal] = useState<any>(null);
   const [draggedDeal, setDraggedDeal] = useState<string | null>(null);
   const [dropIndicator, setDropIndicator] = useState<{ dealId: string; position: 'before' | 'after' } | null>(null);
+  const [showDropZones, setShowDropZones] = useState(false);
 
   const fetchDeals = async () => {
     try {
@@ -234,11 +235,17 @@ export default function DealsPage() {
   const handleDragEnd = () => {
     setDraggedDeal(null);
     setDropIndicator(null);
+    setShowDropZones(false);
   };
 
   const handleDragOverCard = (e: React.DragEvent, dealId: string) => {
     e.preventDefault();
     // Don't stop propagation so the card container can also get the event
+    
+    // Don't show position indicators for the card being dragged
+    if (dealId === draggedDeal) {
+      return;
+    }
     
     const rect = e.currentTarget.getBoundingClientRect();
     const midpoint = rect.top + rect.height / 2;
@@ -358,7 +365,8 @@ export default function DealsPage() {
         
         <TabsContent value="pipeline" className="flex-1 mt-1 overflow-hidden p-1">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-6 h-full">
-            {DEAL_STAGES.map((stage) => {
+            {/* Active stages - all except closed-won and closed-lost */}
+            {DEAL_STAGES.slice(0, 5).map((stage) => {
               const stageDeals = filteredDeals
                 .filter(d => d.stage === stage.value)
                 .sort((a, b) => (a.position || 0) - (b.position || 0));
@@ -426,13 +434,34 @@ export default function DealsPage() {
                               onDragOver={(e) => handleDragOverCard(e, deal.id)}
                               onDragLeave={handleDragLeaveCard}
                               onDrop={(e) => handleDrop(e, stage.value)}
+                              onDoubleClick={() => handleEdit(deal)}
                               className={cn(
                                 "group rounded-lg border p-3 cursor-grab hover:shadow-md transition-all hover:scale-[1.02] bg-background relative",
                                 draggedDeal === deal.id && "opacity-0"
                               )}
                             >
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleEdit(deal)}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDelete(deal.id)}
+                                  className="text-red-600"
+                                >
+                                  <Trash className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                             <div className="flex items-start gap-2">
-                              <GripVertical className="h-4 w-4 mt-0.5 text-muted-foreground/50 group-hover:text-muted-foreground" />
+                              <GripVertical className="h-4 w-4 mt-0.5 text-muted-foreground/50 group-hover:text-muted-foreground flex-shrink-0" />
                               <div className="space-y-1 flex-1">
                                 <p className="text-sm font-medium leading-none">
                                   {deal.name}
@@ -460,26 +489,6 @@ export default function DealsPage() {
                                   </p>
                                 )}
                               </div>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleEdit(deal)}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => handleDelete(deal.id)}
-                                    className="text-red-600"
-                                  >
-                                    <Trash className="mr-2 h-4 w-4" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
                             </div>
                             </div>
                             {dropIndicator?.dealId === deal.id && dropIndicator.position === 'after' && (
@@ -493,6 +502,256 @@ export default function DealsPage() {
                 </Card>
               );
             })}
+            
+            {/* Closed column - combines won and lost */}
+            {(() => {
+              const closedWonDeals = filteredDeals
+                .filter(d => d.stage === 'closed-won')
+                .sort((a, b) => (a.position || 0) - (b.position || 0));
+              const closedLostDeals = filteredDeals
+                .filter(d => d.stage === 'closed-lost')
+                .sort((a, b) => (a.position || 0) - (b.position || 0));
+              const totalClosedValue = [...closedWonDeals, ...closedLostDeals]
+                .reduce((sum, deal) => sum + (deal.value || 0), 0);
+              
+              return (
+                <Card 
+                  className="h-full flex flex-col transition-colors gap-0"
+                  onDragOver={(e) => {
+                    handleDragOver(e);
+                    e.currentTarget.classList.add("ring-2", "ring-primary");
+                    setShowDropZones(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.currentTarget.classList.remove("ring-2", "ring-primary");
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                      setShowDropZones(false);
+                    }
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove("ring-2", "ring-primary");
+                    setShowDropZones(false);
+                  }}
+                >
+                  <CardHeader className="pb-2 flex-shrink-0">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-medium">
+                        Closed
+                      </CardTitle>
+                      <Badge variant="secondary">{closedWonDeals.length + closedLostDeals.length}</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {formatCompactCurrency(totalClosedValue)}
+                    </p>
+                  </CardHeader>
+                  <CardContent className="flex-1 overflow-hidden px-3 pt-0 pb-3">
+                    <div className="h-full relative">
+                      {/* Drop zones when dragging */}
+                      {showDropZones && draggedDeal && (
+                        <div className="absolute inset-0 flex flex-col z-10">
+                          <div
+                            className="flex-1 border border-dotted border-muted-foreground/30 rounded-t-lg flex items-center justify-center transition-all"
+                            onDragEnter={(e) => {
+                              e.currentTarget.classList.add("bg-accent/50", "border-foreground", "border-solid");
+                              e.currentTarget.classList.remove("border-dotted", "border-muted-foreground/30");
+                              const text = e.currentTarget.querySelector('p');
+                              if (text) {
+                                text.classList.remove("text-muted-foreground");
+                                text.classList.add("text-foreground");
+                              }
+                            }}
+                            onDragLeave={(e) => {
+                              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                                e.currentTarget.classList.remove("bg-accent/50", "border-foreground", "border-solid");
+                                e.currentTarget.classList.add("border-dotted", "border-muted-foreground/30");
+                                const text = e.currentTarget.querySelector('p');
+                                if (text) {
+                                  text.classList.add("text-muted-foreground");
+                                  text.classList.remove("text-foreground");
+                                }
+                              }
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDrop(e, 'closed-won');
+                              setShowDropZones(false);
+                            }}
+                          >
+                            <p className="text-xs text-muted-foreground transition-colors">Won</p>
+                          </div>
+                          <div
+                            className="flex-1 border border-dotted border-muted-foreground/30 rounded-b-lg flex items-center justify-center transition-all"
+                            onDragEnter={(e) => {
+                              e.currentTarget.classList.add("bg-accent/50", "border-foreground", "border-solid");
+                              e.currentTarget.classList.remove("border-dotted", "border-muted-foreground/30");
+                              const text = e.currentTarget.querySelector('p');
+                              if (text) {
+                                text.classList.remove("text-muted-foreground");
+                                text.classList.add("text-foreground");
+                              }
+                            }}
+                            onDragLeave={(e) => {
+                              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                                e.currentTarget.classList.remove("bg-accent/50", "border-foreground", "border-solid");
+                                e.currentTarget.classList.add("border-dotted", "border-muted-foreground/30");
+                                const text = e.currentTarget.querySelector('p');
+                                if (text) {
+                                  text.classList.add("text-muted-foreground");
+                                  text.classList.remove("text-foreground");
+                                }
+                              }
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDrop(e, 'closed-lost');
+                              setShowDropZones(false);
+                            }}
+                          >
+                            <p className="text-xs text-muted-foreground transition-colors">Lost</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="space-y-2 h-full overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                      
+                      {/* Won section */}
+                      {!showDropZones && closedWonDeals.length > 0 && (
+                        <>
+                          <div className="text-xs font-medium text-muted-foreground px-1">Won ({closedWonDeals.length})</div>
+                          {closedWonDeals.map((deal, index) => (
+                            <div key={deal.id} className="relative">
+                              <div
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, deal)}
+                                onDragEnd={handleDragEnd}
+                                onDragOver={(e) => handleDragOverCard(e, deal.id)}
+                                onDragLeave={handleDragLeaveCard}
+                                onDrop={(e) => handleDrop(e, 'closed-won')}
+                                onDoubleClick={() => handleEdit(deal)}
+                                className={cn(
+                                  "group rounded-lg border p-3 cursor-grab hover:shadow-md transition-all hover:scale-[1.02] bg-background relative",
+                                  draggedDeal === deal.id && "opacity-0"
+                                )}
+                              >
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleEdit(deal)}>
+                                      <Pencil className="mr-2 h-4 w-4" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => handleDelete(deal.id)}
+                                      className="text-red-600"
+                                    >
+                                      <Trash className="mr-2 h-4 w-4" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                                <div className="flex items-start gap-2">
+                                  <GripVertical className="h-4 w-4 mt-0.5 text-muted-foreground/50 group-hover:text-muted-foreground flex-shrink-0" />
+                                  <div className="space-y-1 flex-1">
+                                    <p className="text-sm font-medium leading-none">
+                                      {deal.name}
+                                    </p>
+                                    {deal.value && (
+                                      <p className="text-sm font-semibold">
+                                        {formatCurrency(deal.value)}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </>
+                      )}
+                      
+                      {/* Lost section */}
+                      {!showDropZones && closedLostDeals.length > 0 && (
+                        <>
+                          <div className="text-xs font-medium text-muted-foreground px-1 mt-3">Lost ({closedLostDeals.length})</div>
+                          {closedLostDeals.map((deal, index) => (
+                            <div key={deal.id} className="relative">
+                              <div
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, deal)}
+                                onDragEnd={handleDragEnd}
+                                onDragOver={(e) => handleDragOverCard(e, deal.id)}
+                                onDragLeave={handleDragLeaveCard}
+                                onDrop={(e) => handleDrop(e, 'closed-lost')}
+                                onDoubleClick={() => handleEdit(deal)}
+                                className={cn(
+                                  "group rounded-lg border p-3 cursor-grab hover:shadow-md transition-all hover:scale-[1.02] bg-background relative opacity-60",
+                                  draggedDeal === deal.id && "opacity-0"
+                                )}
+                              >
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleEdit(deal)}>
+                                      <Pencil className="mr-2 h-4 w-4" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => handleDelete(deal.id)}
+                                      className="text-red-600"
+                                    >
+                                      <Trash className="mr-2 h-4 w-4" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                                <div className="flex items-start gap-2">
+                                  <GripVertical className="h-4 w-4 mt-0.5 text-muted-foreground/50 group-hover:text-muted-foreground flex-shrink-0" />
+                                  <div className="space-y-1 flex-1">
+                                    <p className="text-sm font-medium leading-none line-through text-muted-foreground">
+                                      {deal.name}
+                                    </p>
+                                    {deal.value && (
+                                      <p className="text-sm text-muted-foreground line-through">
+                                        {formatCurrency(deal.value)}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </>
+                      )}
+                      
+                      {!showDropZones && closedWonDeals.length === 0 && closedLostDeals.length === 0 && (
+                        <p className="text-center text-sm text-muted-foreground py-8">
+                          No closed deals
+                        </p>
+                      )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
           </div>
         </TabsContent>
         

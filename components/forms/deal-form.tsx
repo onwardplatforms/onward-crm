@@ -191,7 +191,8 @@ export function DealForm({
       const defaultProbabilities: Record<string, number> = {
         lead: 10,
         qualified: 20,
-        proposal: 50,
+        demo: 30,
+        trial: 50,
         negotiation: 70,
         "closed-won": 100,
         "closed-lost": 0,
