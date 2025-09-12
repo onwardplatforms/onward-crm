@@ -41,7 +41,7 @@ export default function RootLayout({
               </main>
             </div>
           </div>
-          <Toaster />
+          <Toaster duration={4000} />
         </Providers>
       </body>
     </html>

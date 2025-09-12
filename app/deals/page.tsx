@@ -28,6 +28,7 @@ import { DEAL_STAGES } from "@/lib/types";
 import { DealForm } from "@/components/forms/deal-form";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatCurrency, formatCompactCurrency } from "@/lib/currency";
 
 export default function DealsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,6 +37,7 @@ export default function DealsPage() {
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState<any>(null);
+  const [draggedDeal, setDraggedDeal] = useState<string | null>(null);
 
   const fetchDeals = async () => {
     try {
@@ -87,31 +89,58 @@ export default function DealsPage() {
     fetchDeals();
   };
 
-  const handleStageChange = async (dealId: string, newStage: string) => {
+  const handleStageChange = async (dealId: string, newStage: string, skipRefetch = false) => {
     const deal = deals.find(d => d.id === dealId);
     if (deal && deal.stage !== newStage) {
       try {
+        // Only send the fields that can be updated
+        const updateData = {
+          name: deal.name,
+          value: deal.value,
+          stage: newStage,
+          closeDate: deal.closeDate,
+          probability: deal.probability,
+          companyId: deal.companyId,
+          contactId: deal.contactId,
+          assignedToId: deal.assignedToId,
+          notes: deal.notes,
+        };
+        
         const response = await fetch(`/api/deals/${dealId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ ...deal, stage: newStage }),
+          body: JSON.stringify(updateData),
         });
         
         if (!response.ok) throw new Error("Failed to update deal");
         
         toast.success("Deal stage updated");
-        fetchDeals();
+        
+        // Only refetch if we haven't already updated optimistically
+        if (!skipRefetch) {
+          fetchDeals();
+        }
       } catch (error) {
         console.error("Error updating deal stage:", error);
         toast.error("Failed to update deal stage");
+        // On error, refetch to get correct state
+        fetchDeals();
       }
     }
   };
 
   const handleDragStart = (e: React.DragEvent, deal: any) => {
     e.dataTransfer.setData("dealId", deal.id);
+    e.dataTransfer.effectAllowed = "move";
+    
+    // Set dragged deal immediately to hide original
+    setDraggedDeal(deal.id);
+    
+    // Use a simple transform for the drag cursor since browser drag images don't animate
+    const dragElement = e.currentTarget as HTMLElement;
+    dragElement.style.cursor = "grabbing";
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -121,27 +150,20 @@ export default function DealsPage() {
   const handleDrop = async (e: React.DragEvent, newStage: string) => {
     e.preventDefault();
     const dealId = e.dataTransfer.getData("dealId");
-    const deal = deals.find(d => d.id === dealId);
     
-    if (deal && deal.stage !== newStage) {
-      try {
-        const response = await fetch(`/api/deals/${dealId}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ ...deal, stage: newStage }),
-        });
-        
-        if (!response.ok) throw new Error("Failed to update deal");
-        
-        toast.success("Deal stage updated");
-        fetchDeals();
-      } catch (error) {
-        console.error("Error updating deal stage:", error);
-        toast.error("Failed to update deal stage");
-      }
-    }
+    // Optimistically update the deal stage in state
+    const updatedDeals = deals.map(d => 
+      d.id === dealId ? { ...d, stage: newStage } : d
+    );
+    setDeals(updatedDeals);
+    setDraggedDeal(null);
+    
+    // Then update the backend (skip refetch since we already updated optimistically)
+    await handleStageChange(dealId, newStage, true);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedDeal(null);
   };
 
   const filteredDeals = deals.filter(
@@ -201,7 +223,7 @@ export default function DealsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${totalPipeline.toLocaleString()}
+              {formatCompactCurrency(totalPipeline)}
             </div>
             <p className="text-xs text-muted-foreground">
               {deals.filter(d => !["closed-won", "closed-lost"].includes(d.stage)).length} deals
@@ -215,7 +237,7 @@ export default function DealsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${Math.round(avgDealSize).toLocaleString()}
+              {formatCompactCurrency(avgDealSize)}
             </div>
           </CardContent>
         </Card>
@@ -227,7 +249,7 @@ export default function DealsPage() {
           <CardContent>
             <div className="text-2xl font-bold">{closingThisMonth.length}</div>
             <p className="text-xs text-muted-foreground">
-              ${closingValue.toLocaleString()} value
+              {formatCompactCurrency(closingValue)} value
             </p>
           </CardContent>
         </Card>
@@ -279,7 +301,7 @@ export default function DealsPage() {
                       <Badge variant="secondary">{stageDeals.length}</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      ${stageValue.toLocaleString()}
+                      {formatCompactCurrency(stageValue)}
                     </p>
                   </CardHeader>
                   <CardContent>
@@ -294,7 +316,11 @@ export default function DealsPage() {
                             key={deal.id}
                             draggable
                             onDragStart={(e) => handleDragStart(e, deal)}
-                            className="group rounded-lg border p-3 cursor-move hover:shadow-md transition-all hover:scale-[1.02] active:scale-[0.98] active:opacity-50"
+                            onDragEnd={handleDragEnd}
+                            className={cn(
+                              "group rounded-lg border p-3 cursor-grab hover:shadow-md transition-all hover:scale-[1.02] bg-background",
+                              draggedDeal === deal.id && "opacity-0"
+                            )}
                           >
                             <div className="flex items-start gap-2">
                               <GripVertical className="h-4 w-4 mt-0.5 text-muted-foreground/50 group-hover:text-muted-foreground" />
@@ -316,7 +342,7 @@ export default function DealsPage() {
                                 )}
                                 {deal.value && (
                                   <p className="text-sm font-semibold">
-                                    ${deal.value.toLocaleString()}
+                                    {formatCurrency(deal.value)}
                                   </p>
                                 )}
                                 {deal.closeDate && (
@@ -387,7 +413,7 @@ export default function DealsPage() {
                       <div className="space-y-1 flex-1">
                         <p className="font-medium">{deal.name}</p>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          {deal.value && <span className="font-semibold">${deal.value.toLocaleString()}</span>}
+                          {deal.value && <span className="font-semibold">{formatCurrency(deal.value)}</span>}
                           {deal.company && (
                             <span className="flex items-center gap-1">
                               <Building2 className="h-3 w-3" />

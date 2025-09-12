@@ -36,10 +36,11 @@ import { DEAL_STAGES } from "@/lib/types";
 import { CompanyForm } from "./company-form";
 import { ContactForm } from "./contact-form";
 import { format } from "date-fns";
+import { currencySchema, formatCurrencyInput, parseCurrency, formatCurrency } from "@/lib/currency";
 
 const dealSchema = z.object({
   name: z.string().min(1, "Deal name is required"),
-  value: z.coerce.number().min(0, "Value must be positive").optional(),
+  value: currencySchema.optional(),
   stage: z.string().min(1, "Stage is required"),
   closeDate: z.date().nullable().optional(),
   probability: z.coerce.number().min(0).max(100).optional(),
@@ -75,7 +76,7 @@ export function DealForm({
     resolver: zodResolver(dealSchema),
     defaultValues: {
       name: deal?.name || "",
-      value: deal?.value || undefined,
+      value: deal?.value || "",
       stage: deal?.stage || "lead",
       closeDate: deal?.closeDate ? new Date(deal.closeDate) : null,
       probability: deal?.probability || 0,
@@ -129,7 +130,7 @@ export function DealForm({
     if (deal) {
       form.reset({
         name: deal.name || "",
-        value: deal.value || undefined,
+        value: deal.value || "",
         stage: deal.stage || "lead",
         closeDate: deal.closeDate ? new Date(deal.closeDate) : null,
         probability: deal.probability || 0,
@@ -179,22 +180,26 @@ export function DealForm({
     }
   };
 
-  // Auto-set probability based on stage
+  // Auto-set probability based on stage (only if probability is empty)
   const handleStageChange = (value: string) => {
     form.setValue("stage", value);
     
-    // Set default probability based on stage
-    const defaultProbabilities: Record<string, number> = {
-      lead: 10,
-      qualified: 25,
-      proposal: 50,
-      negotiation: 75,
-      "closed-won": 100,
-      "closed-lost": 0,
-    };
-    
-    if (defaultProbabilities[value] !== undefined) {
-      form.setValue("probability", defaultProbabilities[value]);
+    // Only set probability if it's currently blank/undefined/0
+    const currentProbability = form.getValues("probability");
+    if (!currentProbability || currentProbability === 0) {
+      // Set default probability based on stage (matching 10% increments)
+      const defaultProbabilities: Record<string, number> = {
+        lead: 10,
+        qualified: 20,
+        proposal: 50,
+        negotiation: 70,
+        "closed-won": 100,
+        "closed-lost": 0,
+      };
+      
+      if (defaultProbabilities[value] !== undefined) {
+        form.setValue("probability", defaultProbabilities[value]);
+      }
     }
   };
 
@@ -234,13 +239,24 @@ export function DealForm({
                 name="value"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Deal Value ($)</FormLabel>
+                    <FormLabel>Deal Value</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="50000" 
-                        {...field} 
-                      />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                          $
+                        </span>
+                        <Input 
+                          className="pl-7"
+                          placeholder="50,000" 
+                          value={field.value || ''}
+                          onChange={(e) => {
+                            const formatted = formatCurrencyInput(e.target.value);
+                            field.onChange(formatted);
+                          }}
+                          onBlur={field.onBlur}
+                          name={field.name}
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
