@@ -38,6 +38,7 @@ export default function DealsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState<any>(null);
   const [draggedDeal, setDraggedDeal] = useState<string | null>(null);
+  const [dropIndicator, setDropIndicator] = useState<{ dealId: string; position: 'before' | 'after' } | null>(null);
 
   const fetchDeals = async () => {
     try {
@@ -89,15 +90,28 @@ export default function DealsPage() {
     fetchDeals();
   };
 
-  const handleStageChange = async (dealId: string, newStage: string, skipRefetch = false) => {
+  const handleStageChange = async (dealId: string, newStage: string, skipRefetch = false, customPosition?: number) => {
     const deal = deals.find(d => d.id === dealId);
-    if (deal && deal.stage !== newStage) {
+    if (deal) {
       try {
+        // Calculate new position for the deal
+        let newPosition: number;
+        if (customPosition !== undefined) {
+          // Use the provided position and round it to integer
+          newPosition = Math.round(customPosition);
+        } else {
+          const stageDeals = deals.filter(d => d.stage === newStage && d.id !== dealId);
+          newPosition = stageDeals.length > 0 
+            ? Math.max(...stageDeals.map(d => d.position || 0)) + 1 
+            : 0;
+        }
+        
         // Only send the fields that can be updated
         const updateData = {
           name: deal.name,
           value: deal.value,
           stage: newStage,
+          position: newPosition,
           closeDate: deal.closeDate,
           probability: deal.probability,
           companyId: deal.companyId,
@@ -114,7 +128,17 @@ export default function DealsPage() {
           body: JSON.stringify(updateData),
         });
         
-        if (!response.ok) throw new Error("Failed to update deal");
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Deal update failed:", errorText);
+          try {
+            const errorJson = JSON.parse(errorText);
+            console.error("Error details:", errorJson.details);
+          } catch (e) {
+            // Not JSON, just log the text
+          }
+          throw new Error("Failed to update deal");
+        }
         
         toast.success("Deal stage updated");
         
@@ -149,21 +173,82 @@ export default function DealsPage() {
 
   const handleDrop = async (e: React.DragEvent, newStage: string) => {
     e.preventDefault();
+    e.stopPropagation();
     const dealId = e.dataTransfer.getData("dealId");
     
-    // Optimistically update the deal stage in state
+    let newPosition: number;
+    
+    // Get all deals in the target stage sorted by position
+    const stageDeals = deals
+      .filter(d => d.stage === newStage && d.id !== dealId)
+      .sort((a, b) => (a.position || 0) - (b.position || 0));
+    
+    // If we have a drop indicator, calculate position based on it
+    if (dropIndicator) {
+      const targetIndex = stageDeals.findIndex(d => d.id === dropIndicator.dealId);
+      if (targetIndex !== -1) {
+        if (dropIndicator.position === 'before') {
+          // Insert before the target
+          if (targetIndex === 0) {
+            newPosition = (stageDeals[0].position || 0) - 100;
+          } else {
+            const prevPos = stageDeals[targetIndex - 1].position || 0;
+            const currPos = stageDeals[targetIndex].position || 0;
+            newPosition = Math.floor((prevPos + currPos) / 2);
+          }
+        } else {
+          // Insert after the target
+          if (targetIndex === stageDeals.length - 1) {
+            newPosition = (stageDeals[targetIndex].position || 0) + 100;
+          } else {
+            const currPos = stageDeals[targetIndex].position || 0;
+            const nextPos = stageDeals[targetIndex + 1].position || 0;
+            newPosition = Math.floor((currPos + nextPos) / 2);
+          }
+        }
+      } else {
+        // Fallback to end of list
+        newPosition = stageDeals.length > 0 
+          ? Math.max(...stageDeals.map(d => d.position || 0)) + 100
+          : 0;
+      }
+    } else {
+      // No indicator, add to end
+      newPosition = stageDeals.length > 0 
+        ? Math.max(...stageDeals.map(d => d.position || 0)) + 100
+        : 0;
+    }
+    
+    // Optimistically update the deal stage and position in state
     const updatedDeals = deals.map(d => 
-      d.id === dealId ? { ...d, stage: newStage } : d
+      d.id === dealId ? { ...d, stage: newStage, position: newPosition } : d
     );
     setDeals(updatedDeals);
     setDraggedDeal(null);
+    setDropIndicator(null);
     
     // Then update the backend (skip refetch since we already updated optimistically)
-    await handleStageChange(dealId, newStage, true);
+    await handleStageChange(dealId, newStage, true, newPosition);
   };
 
   const handleDragEnd = () => {
     setDraggedDeal(null);
+    setDropIndicator(null);
+  };
+
+  const handleDragOverCard = (e: React.DragEvent, dealId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+    const position = e.clientY < midpoint ? 'before' : 'after';
+    
+    setDropIndicator({ dealId, position });
+  };
+
+  const handleDragLeaveCard = () => {
+    setDropIndicator(null);
   };
 
   const filteredDeals = deals.filter(
@@ -271,16 +356,18 @@ export default function DealsPage() {
           <TabsTrigger value="list">List View</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="pipeline" className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-6">
+        <TabsContent value="pipeline" className="mt-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-6 h-[calc(100vh-28rem)]">
             {DEAL_STAGES.map((stage) => {
-              const stageDeals = filteredDeals.filter(d => d.stage === stage.value);
+              const stageDeals = filteredDeals
+                .filter(d => d.stage === stage.value)
+                .sort((a, b) => (a.position || 0) - (b.position || 0));
               const stageValue = stageDeals.reduce((sum, deal) => sum + (deal.value || 0), 0);
               
               return (
                 <Card 
                   key={stage.value} 
-                  className="min-h-[400px] transition-colors"
+                  className="h-full flex flex-col transition-colors"
                   onDragOver={(e) => {
                     handleDragOver(e);
                     e.currentTarget.classList.add("ring-2", "ring-primary");
@@ -293,7 +380,7 @@ export default function DealsPage() {
                     e.currentTarget.classList.remove("ring-2", "ring-primary");
                   }}
                 >
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-3 flex-shrink-0">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm font-medium">
                         {stage.label}
@@ -304,24 +391,47 @@ export default function DealsPage() {
                       {formatCompactCurrency(stageValue)}
                     </p>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
+                  <CardContent className="flex-1 overflow-hidden p-3">
+                    <div className="space-y-2 h-full overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                      {/* Drop zone for first position */}
+                      {stageDeals.length > 0 && (
+                        <div 
+                          className="h-2 relative"
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setDropIndicator({ dealId: stageDeals[0].id, position: 'before' });
+                          }}
+                          onDragLeave={() => setDropIndicator(null)}
+                          onDrop={(e) => handleDrop(e, stage.value)}
+                        >
+                          {dropIndicator?.dealId === stageDeals[0]?.id && dropIndicator.position === 'before' && (
+                            <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary z-10" />
+                          )}
+                        </div>
+                      )}
                       {stageDeals.length === 0 ? (
                         <p className="text-center text-sm text-muted-foreground py-8">
                           No deals in this stage
                         </p>
                       ) : (
-                        stageDeals.map((deal) => (
-                          <div
-                            key={deal.id}
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, deal)}
-                            onDragEnd={handleDragEnd}
-                            className={cn(
-                              "group rounded-lg border p-3 cursor-grab hover:shadow-md transition-all hover:scale-[1.02] bg-background",
-                              draggedDeal === deal.id && "opacity-0"
+                        stageDeals.map((deal, index) => (
+                          <div key={deal.id} className="relative">
+                            {dropIndicator?.dealId === deal.id && dropIndicator.position === 'before' && index > 0 && (
+                              <div className="absolute -top-1 left-0 right-0 h-0.5 bg-primary z-10" />
                             )}
-                          >
+                            <div
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, deal)}
+                              onDragEnd={handleDragEnd}
+                              onDragOver={(e) => handleDragOverCard(e, deal.id)}
+                              onDragLeave={handleDragLeaveCard}
+                              onDrop={(e) => handleDrop(e, stage.value)}
+                              className={cn(
+                                "group rounded-lg border p-3 cursor-grab hover:shadow-md transition-all hover:scale-[1.02] bg-background relative",
+                                draggedDeal === deal.id && "opacity-0"
+                              )}
+                            >
                             <div className="flex items-start gap-2">
                               <GripVertical className="h-4 w-4 mt-0.5 text-muted-foreground/50 group-hover:text-muted-foreground" />
                               <div className="space-y-1 flex-1">
@@ -372,6 +482,10 @@ export default function DealsPage() {
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
+                            </div>
+                            {dropIndicator?.dealId === deal.id && dropIndicator.position === 'after' && (
+                              <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary z-10" />
+                            )}
                           </div>
                         ))
                       )}

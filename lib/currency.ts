@@ -64,8 +64,10 @@ export const currencySchema = z
 export function formatCompactCurrency(amount: number): string {
   if (amount >= 1000000) {
     return `$${(amount / 1000000).toFixed(1)}M`;
+  } else if (amount >= 10000) {
+    return `$${(amount / 1000).toFixed(0)}k`;
   } else if (amount >= 1000) {
-    return `$${(amount / 1000).toFixed(0)}K`;
+    return `$${(amount / 1000).toFixed(1)}k`;
   }
   return formatCurrency(amount);
 }

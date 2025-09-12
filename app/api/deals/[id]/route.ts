@@ -4,11 +4,12 @@ import { prisma } from "@/lib/db";
 // GET single deal
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const deal = await prisma.deal.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         company: true,
         contact: true,
@@ -43,10 +44,12 @@ export async function GET(
 // PUT update deal
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
+    console.log("Updating deal:", id, "with data:", body);
     
     // Handle "unassigned" value
     const { assignedToId, ...restData } = body;
@@ -55,8 +58,10 @@ export async function PUT(
       assignedToId: assignedToId === "unassigned" ? null : assignedToId,
     };
     
+    console.log("Processed update data:", updateData);
+    
     const deal = await prisma.deal.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         company: true,
@@ -74,8 +79,9 @@ export async function PUT(
     return NextResponse.json(deal);
   } catch (error) {
     console.error("Error updating deal:", error);
+    console.error("Full error details:", JSON.stringify(error, null, 2));
     return NextResponse.json(
-      { error: "Failed to update deal" },
+      { error: "Failed to update deal", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
@@ -84,11 +90,12 @@ export async function PUT(
 // DELETE deal
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await prisma.deal.delete({
-      where: { id: params.id },
+      where: { id },
     });
     
     return NextResponse.json({ success: true });

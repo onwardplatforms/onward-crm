@@ -94,6 +94,7 @@ model Deal {
   name        String
   value       Float?
   stage       String    @default("lead")
+  position    Int       @default(0)
   closeDate   DateTime?
   probability Int?      @default(0)
   notes       String?
