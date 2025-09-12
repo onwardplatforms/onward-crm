@@ -145,7 +145,20 @@ export default function CompaniesPage() {
                   filteredCompanies.map((company) => (
                     <TableRow key={company.id}>
                       <TableCell className="font-medium">
-                        {company.name}
+                        <div className="flex items-center gap-2">
+                          {company.name}
+                          {company.linkedinUrl && (
+                            <a
+                              href={company.linkedinUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                              title="View LinkedIn Company Page"
+                            >
+                              <ArrowUpRight className="h-3 w-3" />
+                            </a>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {company.website && (

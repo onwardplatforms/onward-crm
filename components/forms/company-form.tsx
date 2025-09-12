@@ -36,6 +36,7 @@ import { useCurrentUser } from "@/lib/hooks/use-current-user";
 const companySchema = z.object({
   name: z.string().min(1, "Company name is required"),
   website: z.string().url("Invalid URL").optional().or(z.literal("")),
+  linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
   industry: z.string().optional(),
   size: z.string().optional(),
   location: z.string().optional(),
@@ -67,6 +68,7 @@ export function CompanyForm({
     defaultValues: {
       name: company?.name || "",
       website: company?.website || "",
+      linkedinUrl: company?.linkedinUrl || "",
       industry: company?.industry || "",
       size: company?.size || "",
       location: company?.location || "",
@@ -94,6 +96,7 @@ export function CompanyForm({
       form.reset({
         name: company.name || "",
         website: company.website || "",
+        linkedinUrl: company.linkedinUrl || "",
         industry: company.industry || "",
         size: company.size || "",
         location: company.location || "",
@@ -130,7 +133,7 @@ export function CompanyForm({
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         console.error("Company save error:", errorData);
         throw new Error(errorData.error || "Failed to save company");
       }
@@ -186,6 +189,23 @@ export function CompanyForm({
                   <FormLabel>Website</FormLabel>
                   <FormControl>
                     <Input placeholder="https://example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="linkedinUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>LinkedIn URL</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="url"
+                      placeholder="https://linkedin.com/company/acme-inc" 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

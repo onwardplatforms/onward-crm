@@ -4,11 +4,12 @@ import { prisma } from "@/lib/db";
 // GET single contact
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const contact = await prisma.contact.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         company: true,
         activities: true,
@@ -43,9 +44,10 @@ export async function GET(
 // PUT update contact
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     
     // Handle "unassigned" value
@@ -56,7 +58,7 @@ export async function PUT(
     };
     
     const contact = await prisma.contact.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         company: true,
@@ -83,11 +85,12 @@ export async function PUT(
 // DELETE contact
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await prisma.contact.delete({
-      where: { id: params.id },
+      where: { id },
     });
     
     return NextResponse.json({ success: true });

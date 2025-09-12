@@ -4,11 +4,12 @@ import { prisma } from "@/lib/db";
 // GET single company
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const company = await prisma.company.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         contacts: true,
         deals: true,
@@ -43,9 +44,10 @@ export async function GET(
 // PUT update company
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     
     // Handle "unassigned" value
@@ -56,7 +58,7 @@ export async function PUT(
     };
     
     const company = await prisma.company.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         assignedTo: {
@@ -82,11 +84,12 @@ export async function PUT(
 // DELETE company
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await prisma.company.delete({
-      where: { id: params.id },
+      where: { id },
     });
     
     return NextResponse.json({ success: true });

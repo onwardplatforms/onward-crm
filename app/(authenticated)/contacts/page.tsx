@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { ContactForm } from "@/components/forms/contact-form";
 import { toast } from "sonner";
+import { formatPhoneNumber } from "@/lib/phone";
 
 export default function ContactsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -174,9 +175,22 @@ export default function ContactsPage() {
                     <TableRow key={contact.id}>
                       <TableCell>
                         <div>
-                          <p className="font-medium">
-                            {contact.firstName} {contact.lastName}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">
+                              {contact.firstName} {contact.lastName}
+                            </p>
+                            {contact.linkedinUrl && (
+                              <a
+                                href={contact.linkedinUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                                title="View LinkedIn Profile"
+                              >
+                                <ArrowUpRight className="h-3 w-3" />
+                              </a>
+                            )}
+                          </div>
                           {contact.company && (
                             <p className="text-sm text-muted-foreground">
                               {contact.company.name}
@@ -202,7 +216,7 @@ export default function ContactsPage() {
                             href={`tel:${contact.phone}`}
                             className="text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            {contact.phone}
+                            {formatPhoneNumber(contact.phone)}
                           </a>
                         ) : (
                           <span className="text-muted-foreground">-</span>

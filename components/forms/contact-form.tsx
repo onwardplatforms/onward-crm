@@ -40,6 +40,7 @@ const contactSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   phone: phoneSchema,
+  linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
   title: z.string().optional(),
   companyId: z.string().min(1, "Company is required"),
   assignedToId: z.string().optional(),
@@ -74,6 +75,7 @@ export function ContactForm({
       lastName: contact?.lastName || "",
       email: contact?.email || "",
       phone: contact?.phone || "",
+      linkedinUrl: contact?.linkedinUrl || "",
       title: contact?.title || "",
       companyId: contact?.companyId || undefined,
       assignedToId: contact?.assignedToId || currentUser?.id || undefined,
@@ -121,6 +123,7 @@ export function ContactForm({
         lastName: contact.lastName || "",
         email: contact.email || "",
         phone: contact.phone || "",
+        linkedinUrl: contact.linkedinUrl || "",
         title: contact.title || "",
         companyId: contact.companyId || undefined,
         assignedToId: contact.assignedToId || undefined,
@@ -149,7 +152,9 @@ export function ContactForm({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save contact");
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Contact save error:", errorData);
+        throw new Error(errorData.error || "Failed to save contact");
       }
 
       toast.success(
@@ -242,6 +247,23 @@ export function ContactForm({
                         const formatted = formatPhoneOnChange(e.target.value);
                         field.onChange(formatted);
                       }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="linkedinUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>LinkedIn URL</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="url"
+                      placeholder="https://linkedin.com/in/johndoe" 
+                      {...field} 
                     />
                   </FormControl>
                   <FormMessage />
