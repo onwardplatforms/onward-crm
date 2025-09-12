@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contacts   Contact[]
+  companies  Company[]
+  deals      Deal[]
+  activities Activity[]
+}
+
+model Contact {
+  id         String   @id @default(cuid())
+  firstName  String
+  lastName   String
+  email      String?
+  phone      String?
+  title      String?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  deals      Deal[]
+  activities Activity[]
+
+  @@index([userId])
+  @@index([companyId])
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  website   String?
+  industry  String?
+  size      String?
+  location  String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  contacts   Contact[]
+  deals      Deal[]
+  activities Activity[]
+
+  @@index([userId])
+}
+
+model Deal {
+  id          String    @id @default(cuid())
+  name        String
+  value       Float?
+  stage       String    @default("lead")
+  closeDate   DateTime?
+  probability Int?      @default(0)
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  activities Activity[]
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([contactId])
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  type        String   // note, call, email, meeting
+  subject     String
+  description String?
+  date        DateTime @default(now())
+  dueDate     DateTime?
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  dealId String?
+  deal   Deal?   @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([contactId])
+  @@index([companyId])
+  @@index([dealId])
+}
