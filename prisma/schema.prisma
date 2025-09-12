@@ -45,6 +45,9 @@ model User {
   assignedDeals    Deal[]    @relation("AssignedDeals")
   assignedActivities Activity[] @relation("AssignedActivities")
   
+  // Activities where this user was involved (participant)
+  involvedActivities Activity[] @relation("ActivityParticipants")
+  
   // Transitions made by this user
   dealTransitions  DealTransition[]
   
@@ -262,6 +265,9 @@ model Activity {
   // User assigned to this activity
   assignedToId String?
   assignedTo   User?  @relation("AssignedActivities", fields: [assignedToId], references: [id], onDelete: SetNull)
+  
+  // Team members involved in this activity (participants)
+  participants User[] @relation("ActivityParticipants")
   
   notifications Notification[]
 

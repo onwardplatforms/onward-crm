@@ -43,6 +43,7 @@ const activitySchema = z.object({
   contactIds: z.array(z.string()).optional(),
   dealId: z.string().optional(),
   assignedToId: z.string().optional(),
+  participantIds: z.array(z.string()).optional(),
 });
 
 type ActivityFormData = z.infer<typeof activitySchema>;
@@ -75,13 +76,14 @@ export function ActivityForm({
   const form = useForm<ActivityFormData>({
     resolver: zodResolver(activitySchema),
     defaultValues: {
-      type: activity?.type || "note",
+      type: activity?.type || "meeting",
       subject: activity?.subject || "",
       description: activity?.description || "",
       date: activity?.date ? new Date(activity.date) : new Date(),
       contactIds: activity?.contacts?.map((c: any) => c.id) || (contactId ? [contactId] : []),
-      dealId: activity?.dealId || dealId || undefined,
+      dealId: activity?.dealId || dealId || "none",
       assignedToId: activity?.assignedToId || currentUser?.id || undefined,
+      participantIds: activity?.participants?.map((p: any) => p.id) || [],
     },
   });
 
@@ -127,13 +129,14 @@ export function ActivityForm({
   useEffect(() => {
     if (activity) {
       form.reset({
-        type: activity.type || "note",
+        type: activity.type || "meeting",
         subject: activity.subject || "",
         description: activity.description || "",
         date: activity.date ? new Date(activity.date) : new Date(),
         contactIds: activity.contacts?.map((c: any) => c.id) || [],
-        dealId: activity.dealId || undefined,
+        dealId: activity.dealId || "none",
         assignedToId: activity.assignedToId || undefined,
+        participantIds: activity.participants?.map((p: any) => p.id) || [],
       });
     } else if (currentUser?.id && !form.getValues("assignedToId")) {
       // Set default assignedToId for new activities
@@ -174,17 +177,8 @@ export function ActivityForm({
     }
   };
 
-  // Auto-set subject based on type
   const handleTypeChange = (value: string) => {
     form.setValue("type", value);
-    
-    // Only set subject if it's currently blank
-    const currentSubject = form.getValues("subject");
-    if (!currentSubject) {
-      const typeLabel = ACTIVITY_TYPES.find(t => t.value === value)?.label;
-      const today = new Date().toLocaleDateString();
-      form.setValue("subject", `${typeLabel} - ${today}`);
-    }
   };
 
   return (
@@ -269,17 +263,42 @@ export function ActivityForm({
               name="contactIds"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Contacts (Optional)</FormLabel>
+                  <FormLabel>Customer Contacts Involved</FormLabel>
                   <FormControl>
                     <MultiSelect
                       options={contacts.map((contact) => ({
                         value: contact.id,
-                        label: `${contact.firstName} ${contact.lastName}`,
+                        label: `${contact.firstName} ${contact.lastName}${contact.company ? ` (${contact.company.name})` : ''}`,
                       }))}
                       selected={field.value || []}
                       onChange={field.onChange}
-                      placeholder="Select contacts..."
+                      placeholder="Select customer contacts..."
                       emptyText="No contacts found."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="participantIds"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Team Members Involved</FormLabel>
+                  <FormControl>
+                    <MultiSelect
+                      options={teamMembers
+                        .filter(m => m.isActive)
+                        .map((member) => ({
+                          value: member.id,
+                          label: member.name || member.email,
+                        }))}
+                      selected={field.value || []}
+                      onChange={field.onChange}
+                      placeholder="Select team members who participated..."
+                      emptyText="No team members found."
                     />
                   </FormControl>
                   <FormMessage />

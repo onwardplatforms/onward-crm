@@ -370,38 +370,46 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {Object.entries(
-                activities.reduce((acc, activity) => {
-                  const type = activity.type;
-                  if (!acc[type]) acc[type] = 0;
-                  acc[type]++;
-                  return acc;
-                }, {} as Record<string, number>)
-              )
-                .sort(([, a], [, b]) => b - a)
-                .map(([type, count]) => {
-                  const total = activities.length;
-                  const percentage = total > 0 ? (count / total) * 100 : 0;
-                  const typeColors: Record<string, string> = {
-                    call: 'hsl(var(--chart-1))',
-                    email: 'hsl(var(--chart-2))',
-                    meeting: 'hsl(var(--chart-3))',
-                    task: 'hsl(var(--chart-4))',
-                    note: 'hsl(var(--chart-5))',
-                  };
-                  return (
-                    <div key={type} className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="capitalize">{type}</span>
-                        <span className="font-medium">{count}</span>
+              {activities.length > 0 ? (
+                Object.entries(
+                  activities.reduce((acc, activity) => {
+                    const type = activity.type;
+                    if (!acc[type]) acc[type] = 0;
+                    acc[type]++;
+                    return acc;
+                  }, {} as Record<string, number>)
+                )
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([type, count]) => {
+                    const total = activities.length;
+                    const percentage = total > 0 ? (count / total) * 100 : 0;
+                    const typeColors: Record<string, string> = {
+                      call: 'hsl(var(--chart-1))',
+                      email: 'hsl(var(--chart-2))',
+                      meeting: 'hsl(var(--chart-3))',
+                      task: 'hsl(var(--chart-4))',
+                      note: 'hsl(var(--chart-5))',
+                    };
+                    return (
+                      <div key={type} className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="capitalize">{type}</span>
+                          <span className="font-medium">{count}</span>
+                        </div>
+                        <Progress 
+                          value={percentage} 
+                          className="h-2"
+                        />
                       </div>
-                      <Progress 
-                        value={percentage} 
-                        className="h-2"
-                      />
-                    </div>
-                  );
-                })}
+                    );
+                  })
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No activities logged yet</p>
+                  <p className="text-xs mt-1">Click "Log Activity" to get started</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -584,7 +592,7 @@ export default function Dashboard() {
               onClick={() => setActivityFormOpen(true)}
             >
               <Calendar className="mr-2 h-4 w-4" />
-              Schedule Activity
+              Log Activity
             </Button>
             <Button 
               variant="outline" 

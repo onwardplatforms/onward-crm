@@ -17,13 +17,37 @@ export async function GET(request: NextRequest) {
       where: {
         workspaceId,
       },
-      include: {
+      select: {
+        id: true,
+        type: true,
+        subject: true,
+        description: true,
+        date: true,
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
+        workspaceId: true,
+        dealId: true,
+        assignedToId: true,
         contacts: {
-          include: {
-            company: true,
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            company: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
-        deal: true,
+        deal: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -32,6 +56,13 @@ export async function GET(request: NextRequest) {
           },
         },
         assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        participants: {
           select: {
             id: true,
             name: true,
@@ -69,8 +100,8 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Extract contactIds and other data
-    const { contactIds, dealId, assignedToId, ...restData } = body;
+    // Extract contactIds, participantIds and other data
+    const { contactIds, participantIds, dealId, assignedToId, ...restData } = body;
     
     const activityData = {
       ...restData,
@@ -80,6 +111,9 @@ export async function POST(request: NextRequest) {
       assignedToId: assignedToId === "unassigned" ? null : assignedToId,
       contacts: {
         connect: contactIds?.map((id: string) => ({ id })) || [],
+      },
+      participants: {
+        connect: participantIds?.map((id: string) => ({ id })) || [],
       },
     };
     
