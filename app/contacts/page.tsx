@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,10 +12,80 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Search, Mail, Phone, Building2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, Search, Mail, Phone, Building2, MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { ContactForm } from "@/components/forms/contact-form";
+import { toast } from "sonner";
 
 export default function ContactsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [contacts, setContacts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [formOpen, setFormOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<any>(null);
+
+  const fetchContacts = async () => {
+    try {
+      const response = await fetch("/api/contacts");
+      if (!response.ok) throw new Error("Failed to fetch contacts");
+      const data = await response.json();
+      setContacts(data);
+    } catch (error) {
+      console.error("Error fetching contacts:", error);
+      toast.error("Failed to load contacts");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchContacts();
+  }, []);
+
+  const handleEdit = (contact: any) => {
+    setSelectedContact(contact);
+    setFormOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this contact?")) return;
+    
+    try {
+      const response = await fetch(`/api/contacts/${id}`, {
+        method: "DELETE",
+      });
+      
+      if (!response.ok) throw new Error("Failed to delete contact");
+      
+      toast.success("Contact deleted successfully");
+      fetchContacts();
+    } catch (error) {
+      console.error("Error deleting contact:", error);
+      toast.error("Failed to delete contact");
+    }
+  };
+
+  const handleFormClose = () => {
+    setFormOpen(false);
+    setSelectedContact(null);
+  };
+
+  const handleFormSuccess = () => {
+    fetchContacts();
+  };
+
+  const filteredContacts = contacts.filter(
+    (contact) =>
+      contact.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.company?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -26,7 +96,7 @@ export default function ContactsPage() {
             Manage your contacts and their information
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setFormOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Add Contact
         </Button>
@@ -45,27 +115,103 @@ export default function ContactsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground">
-                  No contacts found. Add your first contact to get started.
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+          {loading ? (
+            <div className="text-center py-8">Loading contacts...</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Company</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead className="w-[70px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredContacts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground">
+                      {searchTerm
+                        ? "No contacts found matching your search."
+                        : "No contacts found. Add your first contact to get started."}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredContacts.map((contact) => (
+                    <TableRow key={contact.id}>
+                      <TableCell className="font-medium">
+                        {contact.firstName} {contact.lastName}
+                      </TableCell>
+                      <TableCell>
+                        {contact.email && (
+                          <a
+                            href={`mailto:${contact.email}`}
+                            className="flex items-center gap-1 text-blue-600 hover:underline"
+                          >
+                            <Mail className="h-3 w-3" />
+                            {contact.email}
+                          </a>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {contact.phone && (
+                          <a
+                            href={`tel:${contact.phone}`}
+                            className="flex items-center gap-1 text-blue-600 hover:underline"
+                          >
+                            <Phone className="h-3 w-3" />
+                            {contact.phone}
+                          </a>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {contact.company && (
+                          <div className="flex items-center gap-1">
+                            <Building2 className="h-3 w-3" />
+                            {contact.company.name}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>{contact.title}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(contact)}>
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(contact.id)}
+                              className="text-red-600"
+                            >
+                              <Trash className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
+
+      <ContactForm
+        open={formOpen}
+        onOpenChange={handleFormClose}
+        contact={selectedContact}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,11 +11,82 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Search, Globe, MapPin, Users } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Search, Globe, MapPin, Users, MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { CompanyForm } from "@/components/forms/company-form";
+import { toast } from "sonner";
 
 export default function CompaniesPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [formOpen, setFormOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<any>(null);
+
+  const fetchCompanies = async () => {
+    try {
+      const response = await fetch("/api/companies");
+      if (!response.ok) throw new Error("Failed to fetch companies");
+      const data = await response.json();
+      setCompanies(data);
+    } catch (error) {
+      console.error("Error fetching companies:", error);
+      toast.error("Failed to load companies");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const handleEdit = (company: any) => {
+    setSelectedCompany(company);
+    setFormOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this company?")) return;
+    
+    try {
+      const response = await fetch(`/api/companies/${id}`, {
+        method: "DELETE",
+      });
+      
+      if (!response.ok) throw new Error("Failed to delete company");
+      
+      toast.success("Company deleted successfully");
+      fetchCompanies();
+    } catch (error) {
+      console.error("Error deleting company:", error);
+      toast.error("Failed to delete company");
+    }
+  };
+
+  const handleFormClose = () => {
+    setFormOpen(false);
+    setSelectedCompany(null);
+  };
+
+  const handleFormSuccess = () => {
+    fetchCompanies();
+  };
+
+  const filteredCompanies = companies.filter(
+    (company) =>
+      company.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.website?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.industry?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.location?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -26,7 +97,7 @@ export default function CompaniesPage() {
             Manage companies and their details
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setFormOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Add Company
         </Button>
@@ -45,28 +116,102 @@ export default function CompaniesPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Website</TableHead>
-                <TableHead>Industry</TableHead>
-                <TableHead>Size</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Contacts</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
-                  No companies found. Add your first company to get started.
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+          {loading ? (
+            <div className="text-center py-8">Loading companies...</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Website</TableHead>
+                  <TableHead>Industry</TableHead>
+                  <TableHead>Size</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Contacts</TableHead>
+                  <TableHead className="w-[70px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredCompanies.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-muted-foreground">
+                      {searchTerm
+                        ? "No companies found matching your search."
+                        : "No companies found. Add your first company to get started."}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredCompanies.map((company) => (
+                    <TableRow key={company.id}>
+                      <TableCell className="font-medium">
+                        {company.name}
+                      </TableCell>
+                      <TableCell>
+                        {company.website && (
+                          <a
+                            href={company.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-blue-600 hover:underline"
+                          >
+                            <Globe className="h-3 w-3" />
+                            Visit
+                          </a>
+                        )}
+                      </TableCell>
+                      <TableCell>{company.industry}</TableCell>
+                      <TableCell>{company.size}</TableCell>
+                      <TableCell>
+                        {company.location && (
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {company.location}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          <Users className="h-3 w-3 mr-1" />
+                          {company._count?.contacts || 0}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(company)}>
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(company.id)}
+                              className="text-red-600"
+                            >
+                              <Trash className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
+
+      <CompanyForm
+        open={formOpen}
+        onOpenChange={handleFormClose}
+        company={selectedCompany}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   );
 }
