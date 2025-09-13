@@ -98,8 +98,7 @@ export default function CompaniesPage() {
     (company) =>
       company.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       company.website?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company.industry?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company.location?.toLowerCase().includes(searchTerm.toLowerCase())
+      company.industry?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -161,9 +160,9 @@ export default function CompaniesPage() {
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           {company.name}
-                          {company.linkedinUrl && (
+                          {company.linkedin && (
                             <a
-                              href={company.linkedinUrl}
+                              href={company.linkedin}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"

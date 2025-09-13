@@ -44,7 +44,7 @@ interface Activity {
   completed: boolean;
   deal?: { id: string; name: string };
   contacts?: Array<{ id: string; firstName: string; lastName: string; company?: { name: string } }>;
-  assignedTo?: { id: string; name: string };
+  assignedTo?: { id: string; name: string; email: string };
   user?: { id: string; name: string };
 }
 
@@ -351,7 +351,16 @@ export default function ActivitiesPage() {
       <ActivityForm
         open={formOpen}
         onOpenChange={handleFormClose}
-        activity={selectedActivity}
+        activity={selectedActivity ? {
+          id: selectedActivity.id,
+          type: selectedActivity.type,
+          subject: selectedActivity.subject,
+          description: selectedActivity.description,
+          date: selectedActivity.date,
+          dealId: selectedActivity.deal?.id,
+          assignedToId: selectedActivity.assignedTo?.id,
+          contacts: selectedActivity.contacts?.map(c => ({ id: c.id }))
+        } : undefined}
         onSuccess={handleFormSuccess}
       />
     </div>

@@ -74,7 +74,6 @@ export function ActivityForm({
   activity,
   onSuccess,
   contactId,
-  companyId,
   dealId,
 }: ActivityFormProps) {
   const [loading, setLoading] = useState(false);

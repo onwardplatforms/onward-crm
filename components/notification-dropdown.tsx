@@ -45,7 +45,7 @@ export function NotificationDropdown() {
         setNotifications([]);
         setUnreadCount(0);
       }
-    } catch (error) {
+    } catch {
       // Network error or other issue - silently fail
       // This can happen during SSR or when the user is not authenticated
       setNotifications([]);
