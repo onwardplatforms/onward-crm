@@ -32,14 +32,21 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { CompanyForm } from "./company-form";
-import { phoneSchema, formatPhoneOnChange } from "@/lib/phone";
+import { formatPhoneOnChange } from "@/lib/phone";
 import { useCurrentUser } from "@/lib/hooks/use-current-user";
 
 const contactSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
-  phone: phoneSchema,
+  phone: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .refine(
+      (val) => !val || val.replace(/\D/g, '').length === 0 || (val.replace(/\D/g, '').length >= 10 && val.replace(/\D/g, '').length <= 15),
+      { message: "Phone number must be between 10 and 15 digits" }
+    ),
   linkedinUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
   title: z.string().optional(),
   companyId: z.string().min(1, "Company is required"),
@@ -75,7 +82,7 @@ export function ContactForm({
 }: ContactFormProps) {
   const [loading, setLoading] = useState(false);
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
-  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name?: string; email: string }>>([]);
+  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name?: string; email: string; isActive?: boolean }>>([]);
   const [companyFormOpen, setCompanyFormOpen] = useState(false);
   const { user: currentUser } = useCurrentUser();
 
@@ -85,7 +92,7 @@ export function ContactForm({
       firstName: contact?.firstName || "",
       lastName: contact?.lastName || "",
       email: contact?.email || "",
-      phone: contact?.phone || undefined,
+      phone: contact?.phone || "",
       linkedinUrl: contact?.linkedinUrl || "",
       title: contact?.title || "",
       companyId: contact?.companyId || undefined,
