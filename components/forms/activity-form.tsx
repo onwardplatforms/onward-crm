@@ -51,7 +51,17 @@ type ActivityFormData = z.infer<typeof activitySchema>;
 interface ActivityFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  activity?: any;
+  activity?: {
+    id: string;
+    type?: string;
+    subject?: string;
+    description?: string;
+    date?: string | Date;
+    dealId?: string;
+    assignedToId?: string;
+    contacts?: Array<{ id: string }>;
+    participants?: Array<{ id: string }>;
+  };
   onSuccess?: () => void;
   contactId?: string;
   companyId?: string;
@@ -68,9 +78,9 @@ export function ActivityForm({
   dealId,
 }: ActivityFormProps) {
   const [loading, setLoading] = useState(false);
-  const [contacts, setContacts] = useState<any[]>([]);
-  const [deals, setDeals] = useState<any[]>([]);
-  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [contacts, setContacts] = useState<Array<{ id: string; firstName: string; lastName: string; company?: { name: string } }>>([]);
+  const [deals, setDeals] = useState<Array<{ id: string; name: string }>>([]);
+  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name?: string; email: string }>>([]);
   const { user: currentUser } = useCurrentUser();
 
   const form = useForm<ActivityFormData>({

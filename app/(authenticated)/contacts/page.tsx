@@ -138,7 +138,7 @@ export default function ContactsPage() {
     // Filter activities that include this contact
     const contactActivities = activities.filter(a => 
       a.contacts && Array.isArray(a.contacts) && 
-      a.contacts.some((c: any) => c.id === contactId)
+      a.contacts.some((c: { id: string }) => c.id === contactId)
     );
     
     if (contactActivities.length === 0) return null;

@@ -38,13 +38,32 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatCurrency, formatCompactCurrency } from "@/lib/currency";
 
+interface Deal {
+  id: string;
+  name: string;
+  value?: number;
+  licenses?: number;
+  stage: string;
+  closeDate?: string | Date | null;
+  probability?: number;
+  companyId?: string;
+  contactId?: string;
+  assignedToId?: string;
+  notes?: string;
+  company?: { id: string; name: string };
+  contact?: { id: string; firstName: string; lastName: string };
+  assignedTo?: { id: string; name?: string; email: string };
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
 export default function DealsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("pipeline");
-  const [deals, setDeals] = useState<any[]>([]);
+  const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
-  const [selectedDeal, setSelectedDeal] = useState<any>(null);
+  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [draggedDeal, setDraggedDeal] = useState<string | null>(null);
   const [dropIndicator, setDropIndicator] = useState<{ dealId: string; position: 'before' | 'after' } | null>(null);
   const [showDropZones, setShowDropZones] = useState(false);
@@ -67,7 +86,7 @@ export default function DealsPage() {
     fetchDeals();
   }, []);
 
-  const handleEdit = (deal: any) => {
+  const handleEdit = (deal: Deal) => {
     setSelectedDeal(deal);
     setFormOpen(true);
   };
@@ -143,7 +162,7 @@ export default function DealsPage() {
           try {
             const errorJson = JSON.parse(errorText);
             console.error("Error details:", errorJson.details);
-          } catch (e) {
+          } catch {
             // Not JSON, just log the text
           }
           throw new Error("Failed to update deal");
@@ -164,7 +183,7 @@ export default function DealsPage() {
     }
   };
 
-  const handleDragStart = (e: React.DragEvent, deal: any) => {
+  const handleDragStart = (e: React.DragEvent, deal: Deal) => {
     e.dataTransfer.setData("dealId", deal.id);
     e.dataTransfer.effectAllowed = "move";
     

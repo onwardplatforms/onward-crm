@@ -40,9 +40,16 @@ export function NotificationDropdown() {
         const data = await response.json();
         setNotifications(data.notifications || []);
         setUnreadCount(data.unreadCount || 0);
+      } else if (response.status === 401) {
+        // User is not authenticated, silently ignore
+        setNotifications([]);
+        setUnreadCount(0);
       }
     } catch (error) {
-      console.error("Error fetching notifications:", error);
+      // Network error or other issue - silently fail
+      // This can happen during SSR or when the user is not authenticated
+      setNotifications([]);
+      setUnreadCount(0);
     }
   };
 
@@ -140,10 +147,13 @@ export function NotificationDropdown() {
   };
 
   useEffect(() => {
-    fetchNotifications();
-    // Refresh notifications every minute
-    const interval = setInterval(fetchNotifications, 60000);
-    return () => clearInterval(interval);
+    // Only fetch if we're in the browser (not during SSR)
+    if (typeof window !== 'undefined') {
+      fetchNotifications();
+      // Refresh notifications every minute
+      const interval = setInterval(fetchNotifications, 60000);
+      return () => clearInterval(interval);
+    }
   }, []);
 
   const getIcon = (type: string) => {
