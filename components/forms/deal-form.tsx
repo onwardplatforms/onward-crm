@@ -82,13 +82,14 @@ export function DealForm({
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
   const [contacts, setContacts] = useState<Array<{ id: string; firstName: string; lastName: string; companyId?: string }>>([]);
   const [allContacts, setAllContacts] = useState<Array<{ id: string; firstName: string; lastName: string; companyId?: string }>>([]);
-  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name?: string; email: string }>>([]);
+  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name?: string; email: string; isActive?: boolean }>>([]);
   const [companyFormOpen, setCompanyFormOpen] = useState(false);
   const [contactFormOpen, setContactFormOpen] = useState(false);
   const { user: currentUser } = useCurrentUser();
 
   const form = useForm<DealFormData>({
-    resolver: zodResolver(dealSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(dealSchema) as any,
     defaultValues: {
       name: deal?.name || "",
       value: deal?.value || undefined,
