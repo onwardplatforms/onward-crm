@@ -99,6 +99,17 @@ check-errors:
 	@npx tsc --noEmit || (echo "❌ TypeScript errors found" && exit 1)
 	@echo "✅ No TypeScript errors found"
 
+# Vercel-like build (clean build from scratch)
+vercel-test:
+	@echo "Simulating Vercel build environment..."
+	@echo "Cleaning build artifacts..."
+	@rm -rf .next
+	@echo "Installing dependencies from lock file..."
+	@npm ci --silent
+	@echo "Running production build with Turbopack..."
+	@npm run build || (echo "❌ Build failed" && exit 1)
+	@echo "✅ Build succeeded!"
+
 # Fix all auto-fixable issues
 fix:
 	@echo "Auto-fixing ESLint issues..."
