@@ -7,10 +7,11 @@
   },
   "scripts": {
     "dev": "next dev --turbopack -p 3333",
-    "build": "next build --turbopack",
+    "build": "prisma generate && next build --turbopack",
     "start": "next start -p 3333",
     "lint": "eslint",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
