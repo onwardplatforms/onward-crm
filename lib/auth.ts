@@ -4,11 +4,11 @@ import { prisma } from "@/lib/db";
 
 // Get the base URL for the application
 const getBaseURL = () => {
-  // In production on Vercel, use the VERCEL_URL
+  // Auto-detect from Vercel if available (for preview deployments)
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
-  // In development or if NEXT_PUBLIC_APP_URL is set
+  // Use public URL or fallback to localhost
   return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3333";
 };
 
