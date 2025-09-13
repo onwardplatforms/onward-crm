@@ -46,7 +46,7 @@ export function InviteAcceptModal({
               </>
             ) : (
               <>
-                You've been invited to join <span className="font-medium">{workspaceName}</span>
+                You&apos;ve been invited to join <span className="font-medium">{workspaceName}</span>
               </>
             )}
           </DialogDescription>
@@ -54,7 +54,7 @@ export function InviteAcceptModal({
         
         <div className="py-4">
           <p className="text-sm text-muted-foreground">
-            By accepting this invitation, you'll gain access to all the workspace's contacts, deals, and activities.
+            By accepting this invitation, you&apos;ll gain access to all the workspace&apos;s contacts, deals, and activities.
           </p>
         </div>
 

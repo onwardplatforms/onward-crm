@@ -30,7 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { phoneSchema, formatPhoneOnChange, cleanPhoneNumber } from "@/lib/phone";
+import { phoneSchema, formatPhoneOnChange } from "@/lib/phone";
 
 const userSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -46,7 +46,15 @@ type UserFormData = z.infer<typeof userSchema>;
 interface UserFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  user?: any;
+  user?: {
+    id: string;
+    name?: string;
+    email?: string;
+    title?: string;
+    phone?: string;
+    role?: "admin" | "member";
+    isActive?: boolean;
+  };
   onSuccess?: () => void;
 }
 
@@ -59,7 +67,7 @@ export function UserForm({
   const [loading, setLoading] = useState(false);
 
   const form = useForm<UserFormData>({
-    resolver: zodResolver(userSchema) as any,
+    resolver: zodResolver(userSchema),
     defaultValues: {
       name: user?.name || "",
       email: user?.email || "",
