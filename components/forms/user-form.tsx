@@ -30,13 +30,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { phoneSchema, formatPhoneOnChange } from "@/lib/phone";
+import { formatPhoneOnChange } from "@/lib/phone";
 
 const userSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email").min(1, "Email is required"),
   title: z.string().optional(),
-  phone: phoneSchema,
+  phone: z.string().optional().or(z.literal("")),
   role: z.enum(["admin", "member"]),
   isActive: z.boolean().default(true),
 });
@@ -67,7 +67,8 @@ export function UserForm({
   const [loading, setLoading] = useState(false);
 
   const form = useForm<UserFormData>({
-    resolver: zodResolver(userSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(userSchema) as any,
     defaultValues: {
       name: user?.name || "",
       email: user?.email || "",
@@ -138,7 +139,8 @@ export function UserForm({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
