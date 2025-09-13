@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
       );
     }
     return NextResponse.json(
-      { error: error.message || "Failed to create contact" },
+      { error: error instanceof Error ? error.message : "Failed to create contact" },
       { status: 500 }
     );
   }
