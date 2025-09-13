@@ -79,7 +79,7 @@ export function ActivityForm({
   const [loading, setLoading] = useState(false);
   const [contacts, setContacts] = useState<Array<{ id: string; firstName: string; lastName: string; company?: { name: string } }>>([]);
   const [deals, setDeals] = useState<Array<{ id: string; name: string }>>([]);
-  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name?: string; email: string }>>([]);
+  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name?: string; email: string; isActive?: boolean }>>([]);
   const { user: currentUser } = useCurrentUser();
 
   const form = useForm<ActivityFormData>({

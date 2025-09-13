@@ -70,7 +70,7 @@ export function CompanyForm({
   onSuccess,
 }: CompanyFormProps) {
   const [loading, setLoading] = useState(false);
-  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name?: string; email: string }>>([]);
+  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name?: string; email: string; isActive?: boolean }>>([]);
   const { user: currentUser } = useCurrentUser();
 
   const form = useForm<CompanyFormData>({
