@@ -23,12 +23,26 @@ import { Plus, Search, ArrowUpRight, MoreHorizontal, Pencil, Trash } from "lucid
 import { CompanyForm } from "@/components/forms/company-form";
 import { toast } from "sonner";
 
+interface Company {
+  id: string;
+  name: string;
+  domain?: string;
+  industry?: string;
+  size?: string;
+  website?: string;
+  linkedin?: string;
+  notes?: string;
+  assignedTo?: { id: string; name: string };
+  deals?: Array<{ id: string }>;
+  contacts?: Array<{ id: string }>;
+}
+
 export default function CompaniesPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [companies, setCompanies] = useState<any[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<any>(null);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
 
   const fetchCompanies = async () => {
     try {
@@ -48,7 +62,7 @@ export default function CompaniesPage() {
     fetchCompanies();
   }, []);
 
-  const handleEdit = (company: any) => {
+  const handleEdit = (company: Company) => {
     setSelectedCompany(company);
     setFormOpen(true);
   };

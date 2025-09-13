@@ -11,14 +11,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, MoreHorizontal, Pencil, Trash, ExternalLink, ArrowUpRight } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Pencil, Trash, ArrowUpRight } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
 import { ContactForm } from "@/components/forms/contact-form";
@@ -26,13 +26,35 @@ import { toast } from "sonner";
 import { formatPhoneNumber } from "@/lib/phone";
 import { AssignedUserDisplay } from "@/components/assigned-user-display";
 
+interface Contact {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  title?: string;
+  linkedinUrl?: string;
+  notes?: string;
+  company?: { id: string; name: string };
+  assignedTo?: { id: string; name: string };
+  deals?: Array<{ id: string }>;
+  activities?: Array<{ id: string }>;
+}
+
+interface Activity {
+  id: string;
+  type: string;
+  subject: string;
+  date: string;
+}
+
 export default function ContactsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [contacts, setContacts] = useState<any[]>([]);
-  const [activities, setActivities] = useState<any[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
-  const [selectedContact, setSelectedContact] = useState<any>(null);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [workspaceId, setWorkspaceId] = useState<string>("");
 
   const fetchContacts = async () => {
@@ -71,7 +93,7 @@ export default function ContactsPage() {
       .catch(console.error);
   }, []);
 
-  const handleEdit = (contact: any) => {
+  const handleEdit = (contact: Contact) => {
     setSelectedContact(contact);
     setFormOpen(true);
   };

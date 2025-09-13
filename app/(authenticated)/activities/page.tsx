@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -28,13 +27,26 @@ import {
 } from "@/components/ui/select";
 import { 
   Plus, Search, Phone, Mail, Calendar, FileText,
-  MoreHorizontal, Pencil, Trash, CalendarDays
+  MoreHorizontal, Pencil, Trash
 } from "lucide-react";
-import { format, startOfDay, endOfDay, subDays, addDays, isAfter, isBefore, isEqual } from "date-fns";
-import { cn } from "@/lib/utils";
+import { format, startOfDay, endOfDay, subDays, addDays, isAfter } from "date-fns";
 import { ACTIVITY_TYPES } from "@/lib/types";
 import { ActivityForm } from "@/components/forms/activity-form";
 import { toast } from "sonner";
+
+interface Activity {
+  id: string;
+  type: string;
+  subject: string;
+  date: string;
+  time?: string;
+  description?: string;
+  completed: boolean;
+  deal?: { id: string; name: string };
+  contacts?: Array<{ id: string; firstName: string; lastName: string; company?: { name: string } }>;
+  assignedTo?: { id: string; name: string };
+  user?: { id: string; name: string };
+}
 
 const DATE_FILTERS = [
   { value: "future", label: "Future" },
@@ -48,10 +60,10 @@ const DATE_FILTERS = [
 
 export default function ActivitiesPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [activities, setActivities] = useState<any[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
-  const [selectedActivity, setSelectedActivity] = useState<any>(null);
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
 
@@ -73,7 +85,7 @@ export default function ActivitiesPage() {
     fetchActivities();
   }, []);
 
-  const handleEdit = (activity: any) => {
+  const handleEdit = (activity: Activity) => {
     setSelectedActivity(activity);
     setFormOpen(true);
   };
@@ -105,7 +117,7 @@ export default function ActivitiesPage() {
     fetchActivities();
   };
 
-  const filterByDate = (activity: any) => {
+  const filterByDate = (activity: Activity) => {
     const activityDate = new Date(activity.date);
     const today = startOfDay(new Date());
     const tomorrow = addDays(today, 1);
@@ -138,7 +150,7 @@ export default function ActivitiesPage() {
       const matchesSearch = 
         activity.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         activity.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        activity.contacts?.some((contact: any) => 
+        activity.contacts?.some((contact) => 
           contact.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           contact.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           contact.company?.name?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -264,7 +276,7 @@ export default function ActivitiesPage() {
                       <TableCell>
                         {activity.contacts && activity.contacts.length > 0 ? (
                           <div className="space-y-1">
-                            {activity.contacts.map((contact: any) => (
+                            {activity.contacts.map((contact) => (
                               <div key={contact.id} className="text-sm">
                                 <div>{contact.firstName} {contact.lastName}</div>
                                 {contact.company && (
