@@ -9,7 +9,7 @@ export interface Deal {
   updatedAt: string | Date;
   closeDate?: string | Date | null;
   probability?: number | null;
-  transitions?: any[];
+  transitions?: { fromStage: string; toStage: string; transitionAt: string | Date }[];
 }
 
 export interface Activity {

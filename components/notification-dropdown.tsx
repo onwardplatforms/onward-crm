@@ -5,7 +5,6 @@ import { Bell, Check, Calendar, Briefcase, UserPlus, UserCheck, X } from "lucide
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -22,9 +21,9 @@ interface Notification {
   message: string;
   read: boolean;
   createdAt: string;
-  activity?: any;
-  deal?: any;
-  invite?: any;
+  activity?: { id: string; type: string; subject: string };
+  deal?: { id: string; name: string };
+  invite?: { id: string; workspace: { name: string }; invitedBy: { name: string } };
 }
 
 export function NotificationDropdown() {

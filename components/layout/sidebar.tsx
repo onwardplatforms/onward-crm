@@ -34,11 +34,11 @@ const navigation = {
 export function Sidebar() {
   const pathname = usePathname();
 
-  const renderNavItem = (item: any) => {
+  const renderNavItem = (item: { href: string; icon: React.ReactNode; label: string; name?: string }) => {
     const isActive = pathname === item.href;
     return (
       <Link
-        key={item.name}
+        key={item.href}
         href={item.href}
         className={cn(
           "group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",

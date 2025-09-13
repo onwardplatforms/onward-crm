@@ -20,7 +20,7 @@ export async function getUserWorkspaceStatus(userId: string, workspaceId: string
   };
 }
 
-export async function enrichUsersWithWorkspaceStatus(users: any[], workspaceId: string) {
+export async function enrichUsersWithWorkspaceStatus(users: { id: string; [key: string]: unknown }[], workspaceId: string) {
   // Get all user IDs
   const userIds = users.map(u => u.id).filter(Boolean);
   

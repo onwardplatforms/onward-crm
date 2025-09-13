@@ -2,8 +2,16 @@
 
 import { useState, useEffect } from "react";
 
+interface User {
+  id: string;
+  email: string;
+  name?: string;
+  role?: string;
+  image?: string;
+}
+
 export function useCurrentUser() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

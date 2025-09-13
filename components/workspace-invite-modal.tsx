@@ -165,7 +165,7 @@ export function WorkspaceInviteModal({
               <div className="rounded-lg bg-muted p-4">
                 <p className="text-sm font-medium mb-2">Invitation sent!</p>
                 <p className="text-xs text-muted-foreground mb-4">
-                  If they're already using the app, they'll see the invitation in their notifications.
+                  If they&apos;re already using the app, they&apos;ll see the invitation in their notifications.
                   Otherwise, share this link with them:
                 </p>
                 <div className="flex items-center gap-2">
