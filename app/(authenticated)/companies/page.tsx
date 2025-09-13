@@ -32,9 +32,10 @@ interface Company {
   website?: string;
   linkedin?: string;
   notes?: string;
-  assignedTo?: { id: string; name: string };
+  assignedTo?: { id: string; name: string; email: string };
   deals?: Array<{ id: string }>;
   contacts?: Array<{ id: string }>;
+  _count?: { contacts: number; deals: number };
 }
 
 export default function CompaniesPage() {
@@ -189,7 +190,7 @@ export default function CompaniesPage() {
                       <TableCell>{company.industry}</TableCell>
                       <TableCell>{company.size}</TableCell>
                       <TableCell>
-                        {company.location || <span className="text-muted-foreground">-</span>}
+                        <span className="text-muted-foreground">-</span>
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary">
@@ -239,7 +240,16 @@ export default function CompaniesPage() {
       <CompanyForm
         open={formOpen}
         onOpenChange={handleFormClose}
-        company={selectedCompany}
+        company={selectedCompany ? {
+          id: selectedCompany.id,
+          name: selectedCompany.name,
+          website: selectedCompany.website,
+          linkedinUrl: selectedCompany.linkedin,
+          industry: selectedCompany.industry,
+          size: selectedCompany.size,
+          assignedToId: selectedCompany.assignedTo?.id,
+          notes: selectedCompany.notes
+        } : undefined}
         onSuccess={handleFormSuccess}
       />
     </div>

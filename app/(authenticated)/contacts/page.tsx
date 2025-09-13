@@ -36,7 +36,7 @@ interface Contact {
   linkedinUrl?: string;
   notes?: string;
   company?: { id: string; name: string };
-  assignedTo?: { id: string; name: string };
+  assignedTo?: { id: string; name: string; email: string };
   deals?: Array<{ id: string }>;
   activities?: Array<{ id: string }>;
 }
@@ -46,6 +46,7 @@ interface Activity {
   type: string;
   subject: string;
   date: string;
+  contacts?: Array<{ id: string }>;
 }
 
 export default function ContactsPage() {
@@ -279,7 +280,7 @@ export default function ContactsPage() {
                       </TableCell>
                       <TableCell>
                         <AssignedUserDisplay 
-                          user={contact.assignedTo} 
+                          user={contact.assignedTo || null} 
                           workspaceId={workspaceId}
                         />
                       </TableCell>
@@ -317,7 +318,18 @@ export default function ContactsPage() {
       <ContactForm
         open={formOpen}
         onOpenChange={handleFormClose}
-        contact={selectedContact}
+        contact={selectedContact ? {
+          id: selectedContact.id,
+          firstName: selectedContact.firstName,
+          lastName: selectedContact.lastName,
+          email: selectedContact.email,
+          phone: selectedContact.phone,
+          linkedinUrl: selectedContact.linkedinUrl,
+          title: selectedContact.title,
+          companyId: selectedContact.company?.id,
+          assignedToId: selectedContact.assignedTo?.id,
+          notes: selectedContact.notes
+        } : undefined}
         onSuccess={handleFormSuccess}
       />
     </div>

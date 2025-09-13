@@ -44,6 +44,7 @@ interface Deal {
   value?: number;
   licenses?: number;
   stage: string;
+  position?: number;
   closeDate?: string | Date | null;
   probability?: number;
   companyId?: string;
@@ -948,7 +949,19 @@ export default function DealsPage() {
       <DealForm
         open={formOpen}
         onOpenChange={handleFormClose}
-        deal={selectedDeal}
+        deal={selectedDeal ? {
+          id: selectedDeal.id,
+          name: selectedDeal.name,
+          value: selectedDeal.value,
+          licenses: selectedDeal.licenses,
+          stage: selectedDeal.stage,
+          closeDate: selectedDeal.closeDate,
+          probability: selectedDeal.probability,
+          companyId: selectedDeal.companyId,
+          contactId: selectedDeal.contactId,
+          assignedToId: selectedDeal.assignedToId,
+          notes: selectedDeal.notes
+        } : undefined}
         onSuccess={handleFormSuccess}
       />
     </div>

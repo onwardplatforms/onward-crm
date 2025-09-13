@@ -80,6 +80,10 @@ interface Deal {
   probability?: number;
   company?: { name: string };
   contact?: { firstName: string; lastName: string };
+  assignedTo?: { id: string; name?: string; email: string };
+  user?: { id: string; name?: string; email: string };
+  assignedToId?: string;
+  userId?: string;
   updatedAt: string | Date;
   createdAt: string | Date;
   attentionReasons?: string[];
@@ -91,6 +95,7 @@ interface Activity {
   subject: string;
   date: string | Date;
   contacts?: Array<{ id: string }>;
+  dealId?: string;
 }
 
 interface Contact {
@@ -203,11 +208,12 @@ export default function Dashboard() {
       setUsers(users);
 
       // Calculate all metrics
-      setSalesVelocity(calculateSalesVelocity(deals));
+      const salesVelocityResult = calculateSalesVelocity(deals);
+      setSalesVelocity(salesVelocityResult === 0 ? null : salesVelocityResult);
       setStageVelocity(calculateStageVelocity(deals));
       setPipelineTrend(calculatePipelineTrend(deals));
       setWinRateByStage(calculateWinRateByStage(deals));
-      setDealsNeedingAttention(getDealsNeedingAttention(deals));
+      setDealsNeedingAttention(getDealsNeedingAttention(deals) as Deal[]);
       setForecast(calculateForecast(deals));
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -516,7 +522,7 @@ export default function Dashboard() {
                       {deal.company && ` • ${deal.company.name}`}
                     </p>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {deal.attentionReasons.map((reason: string, i: number) => (
+                      {deal.attentionReasons?.map((reason: string, i: number) => (
                         <Badge key={i} variant="secondary" className="text-xs">
                           {reason}
                         </Badge>
@@ -562,6 +568,7 @@ export default function Dashboard() {
                   }
                   
                   acc[owner] = {
+                    dealsCount: 0,
                     closedWon: 0,
                     totalValue: 0,
                     activitiesCount: 0,
@@ -570,7 +577,7 @@ export default function Dashboard() {
                 }
                 if (deal.stage === 'closed-won') {
                   acc[owner].closedWon++;
-                  acc[owner].totalValue += deal.value;
+                  acc[owner].totalValue += deal.value || 0;
                 }
                 // Count activities for this owner's deals
                 acc[owner].activitiesCount += activities.filter(
