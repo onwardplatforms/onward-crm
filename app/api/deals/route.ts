@@ -96,7 +96,8 @@ export async function POST(request: NextRequest) {
     // Create deal and initial transition in a transaction
     const deal = await prisma.$transaction(async (tx) => {
       const newDeal = await tx.deal.create({
-        data: createData,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data: createData as any,
         include: {
           company: true,
           contact: true,

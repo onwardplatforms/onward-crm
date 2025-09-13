@@ -86,7 +86,8 @@ export async function POST(request: NextRequest) {
     }
     
     const contact = await prisma.contact.create({
-      data: createData,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      data: createData as any,
       include: {
         company: true,
         assignedTo: {
