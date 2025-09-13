@@ -23,7 +23,7 @@ interface Notification {
   createdAt: string;
   activity?: { id: string; type: string; subject: string };
   deal?: { id: string; name: string };
-  invite?: { id: string; workspace: { name: string }; invitedBy: { name: string } };
+  invite?: { id: string; token?: string; workspace: { name: string }; invitedBy: { name: string } };
 }
 
 export function NotificationDropdown() {
@@ -102,7 +102,7 @@ export function NotificationDropdown() {
   };
 
   const handleAcceptInvite = async (notification: Notification) => {
-    if (!notification.invite) return;
+    if (!notification.invite || !notification.invite.token) return;
     
     setProcessingInvites(prev => new Set(prev).add(notification.id));
     

@@ -34,8 +34,9 @@ const navigation = {
 export function Sidebar() {
   const pathname = usePathname();
 
-  const renderNavItem = (item: { href: string; icon: React.ReactNode; label: string; name?: string }) => {
+  const renderNavItem = (item: { name: string; href: string; icon: React.ComponentType<{ className?: string }> }) => {
     const isActive = pathname === item.href;
+    const Icon = item.icon;
     return (
       <Link
         key={item.href}
@@ -47,7 +48,7 @@ export function Sidebar() {
             : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         )}
       >
-        <item.icon
+        <Icon
           className={cn(
             "mr-3 h-5 w-5 flex-shrink-0",
             isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground"
