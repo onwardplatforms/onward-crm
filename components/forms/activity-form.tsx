@@ -80,10 +80,10 @@ export function ActivityForm({
       subject: activity?.subject || "",
       description: activity?.description || "",
       date: activity?.date ? new Date(activity.date) : new Date(),
-      contactIds: activity?.contacts?.map((c: any) => c.id) || (contactId ? [contactId] : []),
+      contactIds: activity?.contacts?.map((c: { id: string }) => c.id) || (contactId ? [contactId] : []),
       dealId: activity?.dealId || dealId || "none",
       assignedToId: activity?.assignedToId || currentUser?.id || undefined,
-      participantIds: activity?.participants?.map((p: any) => p.id) || [],
+      participantIds: activity?.participants?.map((p: { id: string }) => p.id) || [],
     },
   });
 
@@ -133,10 +133,10 @@ export function ActivityForm({
         subject: activity.subject || "",
         description: activity.description || "",
         date: activity.date ? new Date(activity.date) : new Date(),
-        contactIds: activity.contacts?.map((c: any) => c.id) || [],
+        contactIds: activity.contacts?.map((c: { id: string }) => c.id) || [],
         dealId: activity.dealId || "none",
         assignedToId: activity.assignedToId || undefined,
-        participantIds: activity.participants?.map((p: any) => p.id) || [],
+        participantIds: activity.participants?.map((p: { id: string }) => p.id) || [],
       });
     } else if (currentUser?.id && !form.getValues("assignedToId")) {
       // Set default assignedToId for new activities

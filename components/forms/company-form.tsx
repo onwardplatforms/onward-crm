@@ -49,7 +49,17 @@ type CompanyFormData = z.infer<typeof companySchema>;
 interface CompanyFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  company?: any;
+  company?: {
+    id: string;
+    name?: string;
+    website?: string;
+    linkedinUrl?: string;
+    industry?: string;
+    size?: string;
+    location?: string;
+    assignedToId?: string;
+    notes?: string;
+  };
   onSuccess?: () => void;
 }
 
@@ -60,7 +70,7 @@ export function CompanyForm({
   onSuccess,
 }: CompanyFormProps) {
   const [loading, setLoading] = useState(false);
-  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name?: string; email: string }>>([]);
   const { user: currentUser } = useCurrentUser();
 
   const form = useForm<CompanyFormData>({

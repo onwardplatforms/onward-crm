@@ -52,7 +52,18 @@ type ContactFormData = z.infer<typeof contactSchema>;
 interface ContactFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  contact?: any;
+  contact?: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    linkedinUrl?: string;
+    title?: string;
+    companyId?: string;
+    assignedToId?: string;
+    notes?: string;
+  };
   onSuccess?: () => void;
 }
 
@@ -63,13 +74,13 @@ export function ContactForm({
   onSuccess,
 }: ContactFormProps) {
   const [loading, setLoading] = useState(false);
-  const [companies, setCompanies] = useState<any[]>([]);
-  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
+  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name?: string; email: string }>>([]);
   const [companyFormOpen, setCompanyFormOpen] = useState(false);
   const { user: currentUser } = useCurrentUser();
 
   const form = useForm<ContactFormData>({
-    resolver: zodResolver(contactSchema) as any,
+    resolver: zodResolver(contactSchema),
     defaultValues: {
       firstName: contact?.firstName || "",
       lastName: contact?.lastName || "",

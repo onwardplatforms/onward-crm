@@ -35,8 +35,7 @@ import { Plus } from "lucide-react";
 import { DEAL_STAGES } from "@/lib/types";
 import { CompanyForm } from "./company-form";
 import { ContactForm } from "./contact-form";
-import { format } from "date-fns";
-import { currencySchema, formatCurrencyInput, parseCurrency, formatCurrency } from "@/lib/currency";
+import { currencySchema, formatCurrencyInput } from "@/lib/currency";
 import { useCurrentUser } from "@/lib/hooks/use-current-user";
 
 const dealSchema = z.object({
@@ -57,7 +56,19 @@ type DealFormData = z.infer<typeof dealSchema>;
 interface DealFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  deal?: any;
+  deal?: {
+    id: string;
+    name?: string;
+    value?: number;
+    licenses?: number;
+    stage?: string;
+    closeDate?: string | Date | null;
+    probability?: number;
+    companyId?: string;
+    contactId?: string;
+    assignedToId?: string;
+    notes?: string;
+  };
   onSuccess?: () => void;
 }
 
