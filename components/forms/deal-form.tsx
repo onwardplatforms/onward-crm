@@ -77,7 +77,7 @@ export function DealForm({
   const { user: currentUser } = useCurrentUser();
 
   const form = useForm<DealFormData>({
-    resolver: zodResolver(dealSchema),
+    resolver: zodResolver(dealSchema) as any,
     defaultValues: {
       name: deal?.name || "",
       value: deal?.value || "",
@@ -383,7 +383,7 @@ export function DealForm({
                     <FormLabel>Expected Close Date</FormLabel>
                     <FormControl>
                       <DatePicker
-                        date={field.value}
+                        date={field.value || undefined}
                         onDateChange={field.onChange}
                         placeholder="Select close date"
                       />

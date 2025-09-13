@@ -35,21 +35,23 @@ export async function PUT(
       );
     }
     
-    // Get the user with password
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { password: true }
+    // Get the user's account with password
+    const account = await prisma.account.findFirst({
+      where: { 
+        userId: userId,
+        providerId: "credential" // Assuming credential provider for password auth
+      }
     });
     
-    if (!user) {
+    if (!account || !account.password) {
       return NextResponse.json(
-        { error: "User not found" },
+        { error: "User not found or no password set" },
         { status: 404 }
       );
     }
     
     // Verify current password
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(currentPassword, account.password);
     
     if (!isPasswordValid) {
       return NextResponse.json(
@@ -61,9 +63,9 @@ export async function PUT(
     // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     
-    // Update the password
-    await prisma.user.update({
-      where: { id: userId },
+    // Update the password in the account
+    await prisma.account.update({
+      where: { id: account.id },
       data: { password: hashedPassword }
     });
     

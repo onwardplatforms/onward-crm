@@ -59,7 +59,7 @@ export function UserForm({
   const [loading, setLoading] = useState(false);
 
   const form = useForm<UserFormData>({
-    resolver: zodResolver(userSchema),
+    resolver: zodResolver(userSchema) as any,
     defaultValues: {
       name: user?.name || "",
       email: user?.email || "",

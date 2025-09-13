@@ -69,12 +69,12 @@ export function ContactForm({
   const { user: currentUser } = useCurrentUser();
 
   const form = useForm<ContactFormData>({
-    resolver: zodResolver(contactSchema),
+    resolver: zodResolver(contactSchema) as any,
     defaultValues: {
       firstName: contact?.firstName || "",
       lastName: contact?.lastName || "",
       email: contact?.email || "",
-      phone: contact?.phone || "",
+      phone: contact?.phone || undefined,
       linkedinUrl: contact?.linkedinUrl || "",
       title: contact?.title || "",
       companyId: contact?.companyId || undefined,

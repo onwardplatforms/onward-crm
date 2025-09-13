@@ -1,4 +1,4 @@
-.PHONY: help install dev build start db-start db-stop db-create db-migrate db-studio db-reset setup clean
+.PHONY: help install dev build start db-start db-stop db-create db-migrate db-studio db-reset setup clean lint typecheck check
 
 # Default target
 help:
@@ -15,6 +15,11 @@ help:
 	@echo "  make db-migrate  - Run database migrations"
 	@echo "  make db-studio   - Open Prisma Studio"
 	@echo "  make db-reset    - Reset database (drop, create, migrate)"
+	@echo ""
+	@echo "Code quality:"
+	@echo "  make lint        - Run ESLint"
+	@echo "  make typecheck   - Run TypeScript type checking"
+	@echo "  make check       - Run both lint and typecheck"
 	@echo ""
 	@echo "  make clean       - Clean dependencies and build files"
 
@@ -68,6 +73,20 @@ db-reset:
 # Complete setup from scratch
 setup: install db-start db-create db-migrate
 	@echo "✅ Setup complete! Run 'make dev' to start the development server."
+
+# Lint code
+lint:
+	@echo "Running ESLint..."
+	@npx eslint . --ext .ts,.tsx,.js,.jsx 2>&1 | grep -E "^[0-9]+:[0-9]+|error|warning" | wc -l | xargs -I {} echo "Total lint issues: {}"
+	@npx eslint . --ext .ts,.tsx,.js,.jsx
+
+# Type check
+typecheck:
+	@echo "Running TypeScript type checking..."
+	@npx tsc --noEmit
+
+# Run both lint and typecheck
+check: lint typecheck
 
 # Clean everything
 clean:

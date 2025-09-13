@@ -117,7 +117,7 @@ export async function POST(
       }
     });
     
-    if (existingUser?.workspaces.length > 0) {
+    if (existingUser && existingUser.workspaces.length > 0) {
       return NextResponse.json(
         { error: "User is already a member of this workspace" },
         { status: 400 }

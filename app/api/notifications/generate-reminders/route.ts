@@ -74,6 +74,7 @@ export async function POST(request: Request) {
               }${activity.deal ? ` for deal: ${activity.deal.name}` : ""}`,
               userId: recipientId,
               activityId: activity.id,
+              workspaceId: activity.workspaceId,
             },
           });
           notifications.push(notification);

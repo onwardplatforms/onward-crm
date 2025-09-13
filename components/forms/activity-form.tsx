@@ -233,7 +233,7 @@ export function ActivityForm({
                     <FormLabel>Date</FormLabel>
                     <FormControl>
                       <DatePicker
-                        date={field.value}
+                        date={field.value || undefined}
                         onDateChange={field.onChange}
                         placeholder="Select date"
                       />

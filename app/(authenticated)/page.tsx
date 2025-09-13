@@ -379,10 +379,10 @@ export default function Dashboard() {
                     return acc;
                   }, {} as Record<string, number>)
                 )
-                  .sort(([, a], [, b]) => b - a)
+                  .sort(([, a], [, b]) => (b as number) - (a as number))
                   .map(([type, count]) => {
                     const total = activities.length;
-                    const percentage = total > 0 ? (count / total) * 100 : 0;
+                    const percentage = total > 0 ? ((count as number) / total) * 100 : 0;
                     const typeColors: Record<string, string> = {
                       call: 'hsl(var(--chart-1))',
                       email: 'hsl(var(--chart-2))',
@@ -394,7 +394,7 @@ export default function Dashboard() {
                       <div key={type} className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
                           <span className="capitalize">{type}</span>
-                          <span className="font-medium">{count}</span>
+                          <span className="font-medium">{count as number}</span>
                         </div>
                         <Progress 
                           value={percentage} 
@@ -508,7 +508,7 @@ export default function Dashboard() {
                 return acc;
               }, {} as Record<string, any>)
             )
-              .sort(([, a], [, b]) => b.totalValue - a.totalValue)
+              .sort(([, a], [, b]) => (b as any).totalValue - (a as any).totalValue)
               .slice(0, 3)
               .map(([ownerId, stats], index) => (
                 <div key={ownerId} className="flex items-center justify-between">
@@ -518,15 +518,15 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <p className="text-sm font-medium">
-                        {stats.name || 'Unassigned'}
+                        {(stats as any).name || 'Unassigned'}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {stats.closedWon} deals • {formatCurrency(stats.totalValue)}
+                        {(stats as any).closedWon} deals • {formatCurrency((stats as any).totalValue)}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium">{stats.activitiesCount}</p>
+                    <p className="text-sm font-medium">{(stats as any).activitiesCount}</p>
                     <p className="text-xs text-muted-foreground">activities</p>
                   </div>
                 </div>
@@ -545,7 +545,7 @@ export default function Dashboard() {
         <CardContent>
           <div className="space-y-4">
             {Object.entries(stageVelocity)
-              .sort(([, a], [, b]) => a - b)
+              .sort(([, a], [, b]) => (a as number) - (b as number))
               .map(([stage, avgDays]) => (
                 <div key={stage} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -553,7 +553,7 @@ export default function Dashboard() {
                     <span className="text-sm capitalize">{stage.replace('-', ' ')}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold">{Math.round(avgDays)}</span>
+                    <span className="text-2xl font-bold">{Math.round(avgDays as number)}</span>
                     <span className="text-xs text-muted-foreground">days</span>
                   </div>
                 </div>

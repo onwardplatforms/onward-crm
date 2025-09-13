@@ -443,7 +443,7 @@ export default function DealsPage() {
                       ) : (
                         stageDeals.map((deal, index) => (
                           <div key={deal.id} className="relative">
-                            {dropIndicator?.dealId === deal.id && dropIndicator.position === 'before' && index > 0 && (
+                            {dropIndicator?.dealId === deal.id && dropIndicator?.position === 'before' && index > 0 && (
                               <div className="absolute -top-1 left-0 right-0 h-0.5 bg-primary z-10" />
                             )}
                             <div
@@ -513,7 +513,7 @@ export default function DealsPage() {
                               </div>
                             </div>
                             </div>
-                            {dropIndicator?.dealId === deal.id && dropIndicator.position === 'after' && (
+                            {dropIndicator?.dealId === deal.id && dropIndicator?.position === 'after' && (
                               <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary z-10" />
                             )}
                           </div>

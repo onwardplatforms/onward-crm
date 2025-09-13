@@ -18,11 +18,29 @@ async function main() {
     create: {
       id: "temp-user-id",
       email: "demo@onward.com",
-      password: hashedPassword,
       name: "Demo Admin",
       role: "admin",
       title: "Sales Manager",
       isActive: true,
+    },
+  });
+
+  // Create account with password for authentication
+  await prisma.account.upsert({
+    where: {
+      providerId_accountId: {
+        providerId: "credential",
+        accountId: user.email,
+      }
+    },
+    update: {
+      password: hashedPassword,
+    },
+    create: {
+      providerId: "credential",
+      accountId: user.email,
+      userId: user.id,
+      password: hashedPassword,
     },
   });
 

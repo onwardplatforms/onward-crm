@@ -117,10 +117,10 @@ export default function SettingsPage() {
       fetchCurrentUser();
       fetchNotificationPreferences();
       // Load saved revenue targets from localStorage
-      const savedTargets = localStorage.getItem('revenueTargets');
-      if (savedTargets) {
-        setRevenueTarget(JSON.parse(savedTargets));
-      }
+      // const savedTargets = localStorage.getItem('revenueTargets');
+      // if (savedTargets) {
+      //   setRevenueTarget(JSON.parse(savedTargets));
+      // }
     }
   }, [user]);
 

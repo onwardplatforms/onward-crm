@@ -23,6 +23,13 @@ export async function GET(
     
     const finalWorkspaceId = workspaceId || request.headers.get("x-workspace-id");
     
+    if (!finalWorkspaceId) {
+      return NextResponse.json(
+        { error: "Workspace ID is required" },
+        { status: 400 }
+      );
+    }
+    
     // Check user's status in the workspace
     const userWorkspace = await prisma.userWorkspace.findFirst({
       where: {

@@ -13,7 +13,6 @@ export async function GET(
       include: {
         contacts: true,
         deals: true,
-        activities: true,
         assignedTo: {
           select: {
             id: true,
