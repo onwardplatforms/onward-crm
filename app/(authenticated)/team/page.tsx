@@ -30,7 +30,16 @@ import { useRouter } from "next/navigation";
 
 export default function TeamPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [teamMembers, setTeamMembers] = useState<Array<{
+    id: string;
+    name?: string;
+    email: string;
+    role: string;
+    title?: string;
+    phone?: string;
+    joinedAt?: string;
+    isRemovedFromWorkspace?: boolean;
+  }>>([]);
   const [loading, setLoading] = useState(true);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState<string>("");
@@ -46,7 +55,7 @@ export default function TeamPage() {
       if (workspaceResponse.ok) {
         const workspaceData = await workspaceResponse.json();
         const currentWorkspace = workspaceData.workspaces?.find(
-          (w: any) => w.id === workspaceData.currentWorkspaceId
+          (w: { id: string; name: string }) => w.id === workspaceData.currentWorkspaceId
         );
         
         if (currentWorkspace) {

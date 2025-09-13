@@ -71,14 +71,85 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+interface Deal {
+  id: string;
+  name: string;
+  value?: number;
+  stage: string;
+  closeDate?: string | Date | null;
+  probability?: number;
+  company?: { name: string };
+  contact?: { firstName: string; lastName: string };
+  updatedAt: string | Date;
+  createdAt: string | Date;
+  attentionReasons?: string[];
+}
+
+interface Activity {
+  id: string;
+  type: string;
+  subject: string;
+  date: string | Date;
+  contacts?: Array<{ id: string }>;
+}
+
+interface Contact {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  company?: { name: string };
+}
+
+interface Company {
+  id: string;
+  name: string;
+  website?: string;
+  industry?: string;
+}
+
+interface User {
+  id: string;
+  name?: string;
+  email: string;
+}
+
+interface SalesVelocityMetrics {
+  velocity: number;
+  winRate: number;
+  avgDealSize: number;
+  avgCycleLength: number;
+  qualifiedDeals: number;
+}
+
+interface StageMetrics {
+  stage: string;
+  winRate: number;
+  total: number;
+  won: number;
+}
+
+interface PipelineMetric {
+  month: string;
+  value: number;
+  deals: number;
+}
+
+interface ForecastMetric {
+  month: string;
+  committed: number;
+  bestCase: number;
+  weighted: number;
+}
+
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
-  const [deals, setDeals] = useState<any[]>([]);
-  const [activities, setActivities] = useState<any[]>([]);
-  const [contacts, setContacts] = useState<any[]>([]);
-  const [companies, setCompanies] = useState<any[]>([]);
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [users, setUsers] = useState<any[]>([]);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
   
   // Form states for quick actions
   const [dealFormOpen, setDealFormOpen] = useState(false);
@@ -87,12 +158,12 @@ export default function Dashboard() {
   const [companyFormOpen, setCompanyFormOpen] = useState(false);
   
   // Calculated metrics
-  const [salesVelocity, setSalesVelocity] = useState<any>(null);
-  const [stageVelocity, setStageVelocity] = useState<any>({});
-  const [pipelineTrend, setPipelineTrend] = useState<any[]>([]);
-  const [winRateByStage, setWinRateByStage] = useState<any[]>([]);
-  const [dealsNeedingAttention, setDealsNeedingAttention] = useState<any[]>([]);
-  const [forecast, setForecast] = useState<any[]>([]);
+  const [salesVelocity, setSalesVelocity] = useState<SalesVelocityMetrics | null>(null);
+  const [stageVelocity, setStageVelocity] = useState<Record<string, number>>({});
+  const [pipelineTrend, setPipelineTrend] = useState<PipelineMetric[]>([]);
+  const [winRateByStage, setWinRateByStage] = useState<StageMetrics[]>([]);
+  const [dealsNeedingAttention, setDealsNeedingAttention] = useState<Deal[]>([]);
+  const [forecast, setForecast] = useState<ForecastMetric[]>([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -276,7 +347,7 @@ export default function Dashboard() {
                   />
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
-                    formatter={(value: any) => formatCurrency(value)}
+                    formatter={(value: number) => formatCurrency(value)}
                   />
                   <Bar
                     dataKey="value"
@@ -308,7 +379,7 @@ export default function Dashboard() {
                   />
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
-                    formatter={(value: any) => formatCurrency(value)}
+                    formatter={(value: number) => formatCurrency(value)}
                   />
                   <Bar 
                     dataKey="weighted" 
@@ -407,7 +478,7 @@ export default function Dashboard() {
                 <div className="text-center py-8 text-muted-foreground">
                   <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">No activities logged yet</p>
-                  <p className="text-xs mt-1">Click "Log Activity" to get started</p>
+                  <p className="text-xs mt-1">Click &ldquo;Log Activity&rdquo; to get started</p>
                 </div>
               )}
             </div>
@@ -506,9 +577,9 @@ export default function Dashboard() {
                   a => a.dealId === deal.id
                 ).length;
                 return acc;
-              }, {} as Record<string, any>)
+              }, {} as Record<string, { name: string; dealsCount: number; closedWon: number; totalValue: number; activitiesCount: number }>)
             )
-              .sort(([, a], [, b]) => (b as any).totalValue - (a as any).totalValue)
+              .sort(([, a], [, b]) => b.totalValue - a.totalValue)
               .slice(0, 3)
               .map(([ownerId, stats], index) => (
                 <div key={ownerId} className="flex items-center justify-between">
@@ -518,15 +589,15 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <p className="text-sm font-medium">
-                        {(stats as any).name || 'Unassigned'}
+                        {stats.name || 'Unassigned'}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {(stats as any).closedWon} deals • {formatCurrency((stats as any).totalValue)}
+                        {stats.closedWon} deals • {formatCurrency(stats.totalValue)}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium">{(stats as any).activitiesCount}</p>
+                    <p className="text-sm font-medium">{stats.activitiesCount}</p>
                     <p className="text-xs text-muted-foreground">activities</p>
                   </div>
                 </div>

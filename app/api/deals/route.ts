@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const { assignedToId, companyId, contactId, ...restData } = body;
     
     // Build the data object conditionally
-    const createData: any = {
+    const createData: Record<string, unknown> = {
       ...restData,
       user: {
         connect: { id: userId }

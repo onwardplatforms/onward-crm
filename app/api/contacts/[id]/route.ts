@@ -54,7 +54,7 @@ export async function PUT(
     const { assignedToId, companyId, ...restData } = body;
     
     // Build the update data object
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       ...restData
     };
     

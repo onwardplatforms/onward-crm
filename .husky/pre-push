@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run ESLint and only block on errors, not warnings
+echo "Running ESLint check before push..."
+npx eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=-1 --quiet
+
+if [ $? -ne 0 ]; then
+  echo "❌ ESLint errors found. Please fix them before pushing."
+  echo "Run 'make lint' to see all issues"
+  exit 1
+fi
+
+echo "✅ ESLint check passed"

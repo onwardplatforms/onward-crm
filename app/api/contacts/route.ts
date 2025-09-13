@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     const { assignedToId, companyId, ...restData } = body;
     
     // Build the data object conditionally
-    const createData: any = {
+    const createData: Record<string, unknown> = {
       ...restData,
       user: {
         connect: { id: userId }
@@ -100,10 +100,10 @@ export async function POST(request: NextRequest) {
     });
     
     return NextResponse.json(contact, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating contact:", error);
-    console.error("Error details:", error.message);
-    if (error.code === 'P2003') {
+    console.error("Error details:", (error as Error).message);
+    if ((error as { code?: string }).code === 'P2003') {
       return NextResponse.json(
         { error: "Invalid company or assigned user reference" },
         { status: 400 }

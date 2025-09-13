@@ -1,4 +1,4 @@
-.PHONY: help install dev build start db-start db-stop db-create db-migrate db-studio db-reset setup clean lint typecheck check
+.PHONY: help install dev build start db-start db-stop db-create db-migrate db-studio db-reset setup clean lint typecheck check check-errors fix
 
 # Default target
 help:
@@ -17,9 +17,11 @@ help:
 	@echo "  make db-reset    - Reset database (drop, create, migrate)"
 	@echo ""
 	@echo "Code quality:"
-	@echo "  make lint        - Run ESLint"
+	@echo "  make lint        - Run ESLint (shows all issues)"
 	@echo "  make typecheck   - Run TypeScript type checking"
 	@echo "  make check       - Run both lint and typecheck"
+	@echo "  make check-errors - Check for errors only (what Vercel checks)"
+	@echo "  make fix         - Auto-fix ESLint issues"
 	@echo ""
 	@echo "  make clean       - Clean dependencies and build files"
 
@@ -87,6 +89,21 @@ typecheck:
 
 # Run both lint and typecheck
 check: lint typecheck
+
+# Check for errors only (what would fail in Vercel)
+check-errors:
+	@echo "Checking for ESLint errors (no warnings)..."
+	@npx eslint . --ext .ts,.tsx,.js,.jsx --quiet || (echo "❌ ESLint errors found" && exit 1)
+	@echo "✅ No ESLint errors found"
+	@echo "Running TypeScript check..."
+	@npx tsc --noEmit || (echo "❌ TypeScript errors found" && exit 1)
+	@echo "✅ No TypeScript errors found"
+
+# Fix all auto-fixable issues
+fix:
+	@echo "Auto-fixing ESLint issues..."
+	@npx eslint . --ext .ts,.tsx,.js,.jsx --fix
+	@echo "Done! Run 'make check-errors' to see remaining issues"
 
 # Clean everything
 clean:

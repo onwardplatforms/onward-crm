@@ -60,9 +60,9 @@ export default function SignUpPage() {
       
       toast.success("Account created successfully!");
       router.push("/");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Sign up error:", error);
-      if (error?.message?.includes("already exists")) {
+      if ((error as Error)?.message?.includes("already exists")) {
         toast.error("An account with this email already exists");
       } else {
         toast.error("Failed to create account. Please try again.");

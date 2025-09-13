@@ -16,7 +16,15 @@ import { useTheme } from "next-themes";
 export default function SettingsPage() {
   const { user } = useSession();
   const { theme, setTheme } = useTheme();
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<{
+    id: string;
+    name?: string;
+    email: string;
+    phone?: string;
+    title?: string;
+    password?: string;
+    _count?: unknown;
+  } | null>(null);
   const [profileData, setProfileData] = useState({
     name: "",
     email: "",
@@ -171,9 +179,9 @@ export default function SettingsPage() {
         newPassword: "",
         confirmPassword: "",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating password:", error);
-      toast.error(error.message || "Failed to update password");
+      toast.error((error as Error).message || "Failed to update password");
     } finally {
       setUpdatingPassword(false);
     }

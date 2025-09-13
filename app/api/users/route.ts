@@ -158,9 +158,9 @@ export async function POST(request: NextRequest) {
     // Or you could send them an invitation email with a password reset link
     
     return NextResponse.json(userWithWorkspace, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating team member:", error);
-    if (error?.code === 'P2002') {
+    if ((error as { code?: string })?.code === 'P2002') {
       return NextResponse.json(
         { error: "A user with this email already exists" },
         { status: 400 }
