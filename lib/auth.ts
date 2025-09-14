@@ -16,6 +16,7 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  secret: process.env.BETTER_AUTH_SECRET,
   emailAndPassword: {
     enabled: true,
   },
@@ -29,4 +30,17 @@ export const auth = betterAuth({
     ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
     "http://localhost:3333",
   ],
+  advanced: {
+    cookies: {
+      session_token: {
+        name: "better-auth.session_token",
+        attributes: {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          path: "/",
+        },
+      },
+    },
+  },
 });
