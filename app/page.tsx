@@ -52,13 +52,19 @@ export default function LandingPage() {
         {/* Hero */}
         <div className="text-center space-y-6 pb-20">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold">
-            The Open Source CRM
+            A CRM Built by Developers
             <br />
-            for Startups
+            for Startup Product Companies
           </h1>
 
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Simple, powerful, and free forever. Build better customer relationships without the enterprise complexity.
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            At Onward, we build great engineering products. We had a problem. We wanted a free and simple CRM
+            that could help us track and convert customers without all the cost or feature bloat.
+          </p>
+
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            So we created this. An always free, community driven, startup focused CRM that helps you
+            focus on what matters. Your users.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
@@ -102,9 +108,9 @@ export default function LandingPage() {
             <div className="flex justify-center">
               <Users className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold">Contact Management</h3>
+            <h3 className="text-lg font-semibold">Manage Your Team</h3>
             <p className="text-sm text-muted-foreground">
-              Keep track of customers, leads, and all your interactions in one place.
+              Create workspaces, invite team members, and collaborate on deals together.
             </p>
           </div>
 
@@ -112,9 +118,9 @@ export default function LandingPage() {
             <div className="flex justify-center">
               <BarChart3 className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold">Deal Pipeline</h3>
+            <h3 className="text-lg font-semibold">Track Everything</h3>
             <p className="text-sm text-muted-foreground">
-              Visualize and manage your sales pipeline from lead to close.
+              Contacts, companies, opportunities, and activities all in one simple interface.
             </p>
           </div>
 
@@ -122,31 +128,79 @@ export default function LandingPage() {
             <div className="flex justify-center">
               <Shield className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold">Your Data, Your Control</h3>
+            <h3 className="text-lg font-semibold">Own Your Data</h3>
             <p className="text-sm text-muted-foreground">
-              Self-host or use our cloud. Open source means no vendor lock-in.
+              MIT licensed. Self-host it, fork it, contribute to it. Your data stays yours.
             </p>
           </div>
         </div>
 
-        {/* Open Source */}
-        <div className="text-center py-16 border-t space-y-4">
-          <p className="text-sm uppercase tracking-wider text-muted-foreground">
-            Open Source
-          </p>
-          <p className="text-lg">
-            MIT Licensed • Free Forever • Community Driven
-          </p>
-          <Link
-            href="https://github.com/onwardplatforms/onward-crm"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block"
-          >
-            <Button variant="ghost" size="sm">
-              Star us on GitHub →
-            </Button>
-          </Link>
+        {/* Community */}
+        <div className="py-16 border-t space-y-8">
+          <div className="text-center space-y-4">
+            <h2 className="text-2xl font-semibold">Help Us Make It Better</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              This is a community project. Your feedback and contributions make Onward CRM better for everyone.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            <Link
+              href="https://github.com/onwardplatforms/onward-crm/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group"
+            >
+              <div className="border rounded-lg p-6 hover:border-primary transition-colors">
+                <h3 className="font-semibold mb-2">Report Issues</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Found a bug? Have a feature request? Let us know on GitHub.
+                </p>
+                <span className="text-sm text-primary group-hover:underline">
+                  Open an issue →
+                </span>
+              </div>
+            </Link>
+
+            <Link
+              href="https://github.com/onwardplatforms/onward-crm/pulls"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group"
+            >
+              <div className="border rounded-lg p-6 hover:border-primary transition-colors">
+                <h3 className="font-semibold mb-2">Contribute Code</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Want to add a feature or fix something? PRs are always welcome.
+                </p>
+                <span className="text-sm text-primary group-hover:underline">
+                  Submit a pull request →
+                </span>
+              </div>
+            </Link>
+          </div>
+
+          <div className="text-center pt-8">
+            <p className="text-sm text-muted-foreground mb-4">
+              MIT Licensed • Free Forever • Built by the Community
+            </p>
+            <Link
+              href="https://github.com/onwardplatforms/onward-crm"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="outline" size="sm">
+                <Image
+                  src="/github.svg"
+                  alt="GitHub"
+                  width={16}
+                  height={16}
+                  className="mr-2 dark:invert"
+                />
+                Star us on GitHub
+              </Button>
+            </Link>
+          </div>
         </div>
       </main>
     </div>
