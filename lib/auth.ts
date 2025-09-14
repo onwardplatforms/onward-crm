@@ -5,12 +5,16 @@ import { prisma } from "@/lib/db";
 
 // Get the base URL for the application
 const getBaseURL = () => {
+  // Use custom domain if set in environment
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
   // Auto-detect from Vercel if available (for preview deployments)
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
-  // Use public URL or fallback to localhost
-  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3333";
+  // Fallback to localhost for development
+  return "http://localhost:3333";
 };
 
 export const auth = betterAuth({
@@ -31,6 +35,7 @@ export const auth = betterAuth({
   },
   baseURL: getBaseURL(),
   trustedOrigins: [
+    "https://crm.onwardplatforms.com",
     "https://onward-crm.vercel.app",
     ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
     "http://localhost:3333",
