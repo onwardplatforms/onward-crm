@@ -141,7 +141,7 @@ export default function AuthDebugPage() {
           </CardHeader>
           <CardContent>
             <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded overflow-auto text-xs">
-              {document.cookie || "No cookies set"}
+              {typeof document !== "undefined" ? document.cookie || "No cookies set" : "Loading..."}
             </pre>
           </CardContent>
         </Card>
