@@ -133,58 +133,9 @@ export default function SettingsPage() {
   }, [user]);
 
   const handlePasswordUpdate = async () => {
-    // Validate passwords
-    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
-      toast.error("Please fill in all password fields");
-      return;
-    }
-    
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error("New passwords do not match");
-      return;
-    }
-    
-    if (passwordData.newPassword.length < 8) {
-      toast.error("Password must be at least 8 characters long");
-      return;
-    }
-    
-    if (passwordData.currentPassword === passwordData.newPassword) {
-      toast.error("New password must be different from current password");
-      return;
-    }
-    
-    setUpdatingPassword(true);
-    try {
-      const response = await fetch(`/api/users/${user?.id}/password`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update password");
-      }
-      
-      toast.success("Password updated successfully");
-      // Clear the password fields
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-    } catch (error) {
-      console.error("Error updating password:", error);
-      toast.error((error as Error).message || "Failed to update password");
-    } finally {
-      setUpdatingPassword(false);
-    }
+    // Password update functionality temporarily disabled
+    toast.info("Password update is currently unavailable");
+    return;
   };
 
   const handleProfileSave = async () => {

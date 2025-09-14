@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const publicRoutes = ["/", "/signin", "/signup", "/api/auth"];
+const publicRoutes = ["/signin", "/signup", "/api/auth"];
+const exactPublicRoutes = ["/"]; // Routes that must match exactly
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  
+
+  // Check exact match routes first
+  if (exactPublicRoutes.includes(pathname)) {
+    return NextResponse.next();
+  }
+
   // Allow public routes and API auth routes
   if (publicRoutes.some(route => pathname.startsWith(route))) {
     return NextResponse.next();

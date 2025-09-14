@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { signUp } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -40,26 +41,11 @@ export default function SignUpPage() {
         email: formData.email,
         password: formData.password,
         name: formData.name,
-        callbackURL: "/",
+        callbackURL: "/dashboard",
       });
-      
-      // Create workspace for the new user
-      if (result?.data?.user?.id) {
-        try {
-          await fetch("/api/auth/post-signup", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ userId: result.data.user.id }),
-          });
-        } catch (error) {
-          // Workspace creation failed silently - user can still continue
-        }
-      }
-      
+
       toast.success("Account created successfully!");
-      router.push("/");
+      router.push("/dashboard");
     } catch (error) {
       if ((error as Error)?.message?.includes("already exists")) {
         toast.error("An account with this email already exists");
@@ -79,14 +65,25 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-          <CardDescription>
-            Enter your information to get started
-          </CardDescription>
-        </CardHeader>
+    <div className="min-h-screen flex flex-col sm:justify-center sm:items-center bg-background sm:p-8">
+      <div className="w-full sm:max-w-md flex-1 sm:flex-none flex flex-col">
+        <div className="p-4 sm:pb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to home
+          </Link>
+        </div>
+
+        <Card className="flex-1 sm:flex-none border-0 shadow-none bg-muted/40 rounded-none sm:rounded-lg">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+            <CardDescription>
+              Enter your information to get started
+            </CardDescription>
+          </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -99,6 +96,7 @@ export default function SignUpPage() {
                 onChange={handleChange}
                 required
                 disabled={loading}
+                className="bg-background"
               />
             </div>
             <div className="space-y-2">
@@ -111,6 +109,7 @@ export default function SignUpPage() {
                 onChange={handleChange}
                 required
                 disabled={loading}
+                className="bg-background"
               />
             </div>
             <div className="space-y-2">
@@ -123,6 +122,7 @@ export default function SignUpPage() {
                 onChange={handleChange}
                 required
                 disabled={loading}
+                className="bg-background"
               />
             </div>
             <div className="space-y-2">
@@ -135,6 +135,7 @@ export default function SignUpPage() {
                 onChange={handleChange}
                 required
                 disabled={loading}
+                className="bg-background"
               />
             </div>
           </CardContent>
@@ -150,7 +151,8 @@ export default function SignUpPage() {
             </div>
           </CardFooter>
         </form>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

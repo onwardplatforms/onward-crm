@@ -26,11 +26,20 @@ export function Header() {
 
   const handleSignOut = async () => {
     try {
+      // Call our custom signout endpoint to clear cookies
+      await fetch("/api/auth/signout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      // Also call the Better Auth signOut for completeness
       await signOut();
+
       toast.success("Signed out successfully");
-      router.push("/signin");
+
+      // Force a hard navigation to clear any cached state
+      window.location.href = "/";
     } catch (error) {
-      console.error("Sign out error:", error);
       toast.error("Failed to sign out");
     }
   };

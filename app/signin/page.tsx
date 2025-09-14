@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { signIn } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function SignInPage() {
       const result = await signIn.email({
         email,
         password,
-        callbackURL: "/",
+        callbackURL: "/dashboard",
       });
 
       if (result?.error) {
@@ -37,7 +38,7 @@ export default function SignInPage() {
 
       // Add a small delay to ensure cookies are set
       setTimeout(() => {
-        router.push("/");
+        router.push("/dashboard");
         router.refresh();
       }, 100);
     } catch (error) {
@@ -49,14 +50,25 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Sign in</CardTitle>
-          <CardDescription>
-            Enter your email and password to access your account
-          </CardDescription>
-        </CardHeader>
+    <div className="min-h-screen flex flex-col sm:justify-center sm:items-center bg-background sm:p-8">
+      <div className="w-full sm:max-w-md flex-1 sm:flex-none flex flex-col">
+        <div className="p-4 sm:pb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to home
+          </Link>
+        </div>
+
+        <Card className="flex-1 sm:flex-none border-0 shadow-none bg-muted/40 rounded-none sm:rounded-lg">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold">Sign in</CardTitle>
+            <CardDescription>
+              Enter your email and password to access your account
+            </CardDescription>
+          </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -69,6 +81,7 @@ export default function SignInPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                className="bg-background"
               />
             </div>
             <div className="space-y-2">
@@ -80,6 +93,7 @@ export default function SignInPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
+                className="bg-background"
               />
             </div>
           </CardContent>
@@ -95,7 +109,8 @@ export default function SignInPage() {
             </div>
           </CardFooter>
         </form>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }
