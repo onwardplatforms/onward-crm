@@ -48,10 +48,10 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString() 
     });
     
-    // Try to set a test cookie
+    // Try to set a test cookie with production-ready settings
     response.cookies.set("test-cookie", "test-value-" + Date.now(), {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true, // Always true on Vercel (HTTPS)
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60, // 1 hour
