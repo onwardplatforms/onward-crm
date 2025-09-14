@@ -21,18 +21,30 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
-      await signIn.email({
+      const result = await signIn.email({
         email,
         password,
         callbackURL: "/",
       });
       
+      console.log("Sign in result:", result);
+      
+      if (result?.error) {
+        toast.error(result.error.message || "Failed to sign in");
+        setLoading(false);
+        return;
+      }
+      
       toast.success("Signed in successfully!");
-      router.push("/");
+      // Add a small delay to ensure cookies are set
+      setTimeout(() => {
+        router.push("/");
+        router.refresh();
+      }, 100);
     } catch (error) {
       console.error("Sign in error:", error);
-      toast.error("Invalid email or password");
-    } finally {
+      const message = error instanceof Error ? error.message : "Invalid email or password";
+      toast.error(message);
       setLoading(false);
     }
   };

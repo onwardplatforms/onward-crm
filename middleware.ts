@@ -11,12 +11,21 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check for session token cookie
-  const sessionToken = request.cookies.get("better-auth.session_token");
+  // Check for session token cookie - Better Auth uses "better-auth.session_token"
+  const sessionToken = request.cookies.get("better-auth.session_token") || 
+                      request.cookies.get("better-auth.session-token") ||
+                      request.cookies.get("session-token");
+  
+  // Log available cookies for debugging (remove in production)
+  if (process.env.NODE_ENV === "development") {
+    const allCookies = request.cookies.getAll();
+    console.log("Middleware: Available cookies:", allCookies.map(c => c.name));
+  }
   
   if (!sessionToken) {
     // Redirect to signin if not authenticated (for non-API routes)
     if (!pathname.startsWith("/api/")) {
+      console.log("Middleware: No session token found, redirecting to signin");
       return NextResponse.redirect(new URL("/signin", request.url));
     }
     // For API routes, return 401
