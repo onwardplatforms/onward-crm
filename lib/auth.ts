@@ -24,4 +24,9 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24, // 1 day
   },
   baseURL: getBaseURL(),
+  trustedOrigins: [
+    "https://onward-crm.vercel.app",
+    ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
+    "http://localhost:3333",
+  ],
 });
