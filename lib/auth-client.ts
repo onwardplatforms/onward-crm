@@ -2,12 +2,12 @@
 
 import { createAuthClient } from "better-auth/react";
 
-// In production, use relative URL. In development, use localhost
+// Get the base URL for the auth client
 const getBaseURL = () => {
   if (typeof window !== "undefined") {
-    // Client-side: use relative URL in production, localhost in dev
+    // In production, use the current origin
     if (process.env.NODE_ENV === "production") {
-      return ""; // Empty string means use relative URLs
+      return window.location.origin;
     }
   }
   return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3333";
@@ -15,6 +15,9 @@ const getBaseURL = () => {
 
 export const authClient = createAuthClient({
   baseURL: getBaseURL(),
+  fetchOptions: {
+    credentials: "include", // Ensure cookies are sent with requests
+  },
 });
 
 export const {
