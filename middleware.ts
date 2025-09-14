@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const publicRoutes = ["/signin", "/signup", "/api/auth", "/auth-debug"];
+const publicRoutes = ["/signin", "/signup", "/api/auth"];
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -12,20 +12,11 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check for session token cookie - Better Auth uses "better-auth.session_token"
-  const sessionToken = request.cookies.get("better-auth.session_token") || 
-                      request.cookies.get("better-auth.session-token") ||
-                      request.cookies.get("session-token");
-  
-  // ALWAYS log cookies for debugging
-  const allCookies = request.cookies.getAll();
-  console.log("[Middleware] Path:", pathname);
-  console.log("[Middleware] Available cookies:", allCookies.map(c => ({ name: c.name, value: c.value.substring(0, 20) + '...' })));
-  console.log("[Middleware] Session token found:", !!sessionToken);
+  const sessionToken = request.cookies.get("better-auth.session_token");
   
   if (!sessionToken) {
     // Redirect to signin if not authenticated (for non-API routes)
     if (!pathname.startsWith("/api/")) {
-      console.log("[Middleware] No session token found, redirecting to signin from:", pathname);
       return NextResponse.redirect(new URL("/signin", request.url));
     }
     // For API routes, return 401
@@ -35,25 +26,18 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  // For API routes, we need to get the session from Better Auth
-  // But we can't import auth directly in middleware due to Edge Runtime limitations
-  // So we'll make a request to our auth endpoint to validate the session
+  // For API routes, validate the session and add user info to headers
   if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth")) {
-    console.log("Middleware: Processing API route:", pathname);
     try {
-      // Call our auth API to get session info
       const sessionResponse = await fetch(new URL("/api/auth/get-session", request.url), {
         headers: {
           cookie: request.headers.get("cookie") || "",
         },
       });
-      
-      console.log("Middleware: Session response status:", sessionResponse.status);
-      
+
       if (sessionResponse.ok) {
         const session = await sessionResponse.json();
-        console.log("Middleware: Session data:", JSON.stringify(session, null, 2));
-        
+
         if (session?.user?.id) {
           // Add user info and workspace to headers for API routes
           const requestHeaders = new Headers(request.headers);
@@ -61,9 +45,7 @@ export async function middleware(request: NextRequest) {
           requestHeaders.set("x-user-email", session.user.email || "");
           requestHeaders.set("x-session-id", session.session?.id || "");
           requestHeaders.set("x-workspace-id", session.workspace?.id || "");
-          
-          console.log("Middleware: Setting workspace ID:", session.workspace?.id);
-          
+
           return NextResponse.next({
             request: {
               headers: requestHeaders,
@@ -72,7 +54,11 @@ export async function middleware(request: NextRequest) {
         }
       }
     } catch (error) {
-      console.error("Middleware session check error:", error);
+      // Session validation failed - return 401
+      return NextResponse.json(
+        { error: "Session validation failed" },
+        { status: 401 }
+      );
     }
   }
 

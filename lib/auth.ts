@@ -7,20 +7,11 @@ import { prisma } from "@/lib/db";
 const getBaseURL = () => {
   // Auto-detect from Vercel if available (for preview deployments)
   if (process.env.VERCEL_URL) {
-    const url = `https://${process.env.VERCEL_URL}`;
-    console.log("[Auth Config] Using VERCEL_URL:", url);
-    return url;
+    return `https://${process.env.VERCEL_URL}`;
   }
   // Use public URL or fallback to localhost
-  const url = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3333";
-  console.log("[Auth Config] Using fallback URL:", url);
-  return url;
+  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3333";
 };
-
-console.log("[Auth Config] Initializing with:");
-console.log("  - NODE_ENV:", process.env.NODE_ENV);
-console.log("  - BETTER_AUTH_SECRET exists:", !!process.env.BETTER_AUTH_SECRET);
-console.log("  - Base URL:", getBaseURL());
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -45,9 +36,9 @@ export const auth = betterAuth({
     "http://localhost:3333",
   ],
   advanced: {
-    useSecureCookies: process.env.NODE_ENV === "production", // Force secure cookies in production
+    useSecureCookies: process.env.NODE_ENV === "production",
   },
   plugins: [
-    nextCookies(), // Must be the last plugin
+    nextCookies(), // Handles Next.js specific cookie operations
   ],
 });
