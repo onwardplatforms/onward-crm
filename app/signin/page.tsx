@@ -21,30 +21,22 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
-      console.log("[SignIn] Attempting sign in with email:", email);
-      
       const result = await signIn.email({
         email,
         password,
         callbackURL: "/",
       });
-      
-      console.log("[SignIn] Sign in result:", result);
-      console.log("[SignIn] Document cookies after sign in:", document.cookie);
-      
+
       if (result?.error) {
-        console.log("[SignIn] Sign in error:", result.error);
         toast.error(result.error.message || "Failed to sign in");
         setLoading(false);
         return;
       }
-      
+
       toast.success("Signed in successfully!");
-      console.log("[SignIn] Redirecting to home page...");
-      
+
       // Add a small delay to ensure cookies are set
       setTimeout(() => {
-        console.log("[SignIn] Document cookies before redirect:", document.cookie);
         router.push("/");
         router.refresh();
       }, 100);
@@ -57,7 +49,7 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Sign in</CardTitle>

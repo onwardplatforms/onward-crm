@@ -54,14 +54,13 @@ export default function SignUpPage() {
             body: JSON.stringify({ userId: result.data.user.id }),
           });
         } catch (error) {
-          console.error("Failed to create workspace:", error);
+          // Workspace creation failed silently - user can still continue
         }
       }
       
       toast.success("Account created successfully!");
       router.push("/");
     } catch (error) {
-      console.error("Sign up error:", error);
       if ((error as Error)?.message?.includes("already exists")) {
         toast.error("An account with this email already exists");
       } else {
@@ -80,7 +79,7 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
