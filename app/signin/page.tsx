@@ -21,23 +21,30 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
+      console.log("[SignIn] Attempting sign in with email:", email);
+      
       const result = await signIn.email({
         email,
         password,
         callbackURL: "/",
       });
       
-      console.log("Sign in result:", result);
+      console.log("[SignIn] Sign in result:", result);
+      console.log("[SignIn] Document cookies after sign in:", document.cookie);
       
       if (result?.error) {
+        console.log("[SignIn] Sign in error:", result.error);
         toast.error(result.error.message || "Failed to sign in");
         setLoading(false);
         return;
       }
       
       toast.success("Signed in successfully!");
+      console.log("[SignIn] Redirecting to home page...");
+      
       // Add a small delay to ensure cookies are set
       setTimeout(() => {
+        console.log("[SignIn] Document cookies before redirect:", document.cookie);
         router.push("/");
         router.refresh();
       }, 100);

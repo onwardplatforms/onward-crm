@@ -16,16 +16,16 @@ export async function middleware(request: NextRequest) {
                       request.cookies.get("better-auth.session-token") ||
                       request.cookies.get("session-token");
   
-  // Log available cookies for debugging (remove in production)
-  if (process.env.NODE_ENV === "development") {
-    const allCookies = request.cookies.getAll();
-    console.log("Middleware: Available cookies:", allCookies.map(c => c.name));
-  }
+  // ALWAYS log cookies for debugging
+  const allCookies = request.cookies.getAll();
+  console.log("[Middleware] Path:", pathname);
+  console.log("[Middleware] Available cookies:", allCookies.map(c => ({ name: c.name, value: c.value.substring(0, 20) + '...' })));
+  console.log("[Middleware] Session token found:", !!sessionToken);
   
   if (!sessionToken) {
     // Redirect to signin if not authenticated (for non-API routes)
     if (!pathname.startsWith("/api/")) {
-      console.log("Middleware: No session token found, redirecting to signin");
+      console.log("[Middleware] No session token found, redirecting to signin from:", pathname);
       return NextResponse.redirect(new URL("/signin", request.url));
     }
     // For API routes, return 401
