@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { nextCookies } from "better-auth/next-js";
 import { prisma } from "@/lib/db";
 
 // Get the base URL for the application
@@ -44,17 +45,9 @@ export const auth = betterAuth({
     "http://localhost:3333",
   ],
   advanced: {
-    cookies: {
-      session_token: {
-        name: "better-auth.session_token",
-        attributes: {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production", // Use secure in production
-          sameSite: "lax", // Use lax for same-site requests
-          path: "/",
-        },
-      },
-    },
     useSecureCookies: process.env.NODE_ENV === "production", // Force secure cookies in production
   },
+  plugins: [
+    nextCookies(), // Must be the last plugin
+  ],
 });

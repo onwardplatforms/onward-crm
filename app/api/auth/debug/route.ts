@@ -48,10 +48,10 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString() 
     });
     
-    // Try to set a test cookie with production-ready settings
+    // Try to set a test cookie - let Next.js handle the settings
     response.cookies.set("test-cookie", "test-value-" + Date.now(), {
       httpOnly: true,
-      secure: true, // Always true on Vercel (HTTPS)
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60, // 1 hour
