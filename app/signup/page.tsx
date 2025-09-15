@@ -44,6 +44,19 @@ export default function SignUpPage() {
         callbackURL: "/dashboard",
       });
 
+      // Create workspace for the new user
+      try {
+        await fetch("/api/auth/post-signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      } catch (error) {
+        // Workspace creation failed silently - user can still continue
+        console.error("Failed to create workspace:", error);
+      }
+
       toast.success("Account created successfully!");
       router.push("/dashboard");
     } catch (error) {
