@@ -49,12 +49,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Set the workspace as active for the user
-    await prisma.user.update({
-      where: { id: userId },
-      data: { activeWorkspaceId: workspace.id },
-    });
-
     return NextResponse.json({ workspace });
   } catch (error) {
     console.error("Failed to create workspace:", error);
