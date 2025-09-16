@@ -123,8 +123,8 @@ export function CompanyForm({
     setLoading(true);
     try {
       const url = company
-        ? `/api/companies/${company.id}`
-        : "/api/companies";
+        ? `/api/company/${company.id}`
+        : "/api/company";
       const method = company ? "PUT" : "POST";
 
       // Handle "unassigned" value

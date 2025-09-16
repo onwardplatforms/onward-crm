@@ -61,8 +61,8 @@ export default function ContactsPage() {
   const fetchContacts = async () => {
     try {
       const [contactsRes, activitiesRes] = await Promise.all([
-        fetch("/api/contacts"),
-        fetch("/api/activities")
+        fetch("/api/contact"),
+        fetch("/api/activity")
       ]);
       
       if (!contactsRes.ok) throw new Error("Failed to fetch contacts");
@@ -103,7 +103,7 @@ export default function ContactsPage() {
     if (!confirm("Are you sure you want to delete this contact?")) return;
     
     try {
-      const response = await fetch(`/api/contacts/${id}`, {
+      const response = await fetch(`/api/contact/${id}`, {
         method: "DELETE",
       });
       

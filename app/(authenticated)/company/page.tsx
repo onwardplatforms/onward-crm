@@ -47,7 +47,7 @@ export default function CompaniesPage() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await fetch("/api/companies");
+      const response = await fetch("/api/company");
       if (!response.ok) throw new Error("Failed to fetch companies");
       const data = await response.json();
       setCompanies(data);
@@ -72,7 +72,7 @@ export default function CompaniesPage() {
     if (!confirm("Are you sure you want to delete this company?")) return;
     
     try {
-      const response = await fetch(`/api/companies/${id}`, {
+      const response = await fetch(`/api/company/${id}`, {
         method: "DELETE",
       });
       

@@ -98,7 +98,7 @@ export function ActivityForm({
 
   const fetchContacts = async () => {
     try {
-      const res = await fetch("/api/contacts");
+      const res = await fetch("/api/contact");
       const data = await res.json();
       setContacts(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -109,7 +109,7 @@ export function ActivityForm({
 
   const fetchDeals = async () => {
     try {
-      const res = await fetch("/api/deals");
+      const res = await fetch("/api/opportunity");
       const data = await res.json();
       setDeals(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -156,7 +156,7 @@ export function ActivityForm({
   const onSubmit = async (data: ActivityFormData) => {
     setLoading(true);
     try {
-      const url = activity ? `/api/activities/${activity.id}` : "/api/activities";
+      const url = activity ? `/api/activity/${activity.id}` : "/api/activity";
       const method = activity ? "PUT" : "POST";
 
       const response = await fetch(url, {

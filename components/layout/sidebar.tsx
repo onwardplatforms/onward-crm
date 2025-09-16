@@ -21,10 +21,10 @@ const navigation = {
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   ],
   crm: [
-    { name: "Companies", href: "/companies", icon: Building2 },
-    { name: "Contacts", href: "/contacts", icon: Users },
-    { name: "Deals", href: "/deals", icon: Briefcase },
-    { name: "Activities", href: "/activities", icon: Activity },
+    { name: "Companies", href: "/company", icon: Building2 },
+    { name: "Contacts", href: "/contact", icon: Users },
+    { name: "Opportunities", href: "/opportunity", icon: Briefcase },
+    { name: "Activities", href: "/activity", icon: Activity },
   ],
   organization: [
     { name: "Team", href: "/team", icon: UsersRound },

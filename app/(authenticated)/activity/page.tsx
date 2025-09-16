@@ -69,7 +69,7 @@ export default function ActivitiesPage() {
 
   const fetchActivities = async () => {
     try {
-      const response = await fetch("/api/activities");
+      const response = await fetch("/api/activity");
       if (!response.ok) throw new Error("Failed to fetch activities");
       const data = await response.json();
       setActivities(data);
@@ -94,7 +94,7 @@ export default function ActivitiesPage() {
     if (!confirm("Are you sure you want to delete this activity?")) return;
     
     try {
-      const response = await fetch(`/api/activities/${id}`, {
+      const response = await fetch(`/api/activity/${id}`, {
         method: "DELETE",
       });
       

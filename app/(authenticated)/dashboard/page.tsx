@@ -178,10 +178,10 @@ export default function Dashboard() {
     try {
       // Fetch all data in parallel
       const [contactsRes, companiesRes, dealsRes, activitiesRes, sessionRes, usersRes] = await Promise.all([
-        fetch("/api/contacts"),
-        fetch("/api/companies"),
-        fetch("/api/deals"),
-        fetch("/api/activities"),
+        fetch("/api/contact"),
+        fetch("/api/company"),
+        fetch("/api/opportunity"),
+        fetch("/api/activity"),
         fetch("/api/auth/get-session"),
         fetch("/api/users"),
       ]);

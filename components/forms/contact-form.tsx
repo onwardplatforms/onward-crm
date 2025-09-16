@@ -103,7 +103,7 @@ export function ContactForm({
 
   const fetchCompanies = async () => {
     try {
-      const res = await fetch("/api/companies");
+      const res = await fetch("/api/company");
       const data = await res.json();
       setCompanies(data);
     } catch (error) {
@@ -157,8 +157,8 @@ export function ContactForm({
     setLoading(true);
     try {
       const url = contact
-        ? `/api/contacts/${contact.id}`
-        : "/api/contacts";
+        ? `/api/contact/${contact.id}`
+        : "/api/contact";
       const method = contact ? "PUT" : "POST";
 
       const response = await fetch(url, {

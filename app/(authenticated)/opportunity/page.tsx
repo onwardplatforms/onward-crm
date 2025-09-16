@@ -71,7 +71,7 @@ export default function DealsPage() {
 
   const fetchDeals = async () => {
     try {
-      const response = await fetch("/api/deals");
+      const response = await fetch("/api/opportunity");
       if (!response.ok) throw new Error("Failed to fetch deals");
       const data = await response.json();
       setDeals(data);
@@ -96,7 +96,7 @@ export default function DealsPage() {
     if (!confirm("Are you sure you want to delete this deal?")) return;
     
     try {
-      const response = await fetch(`/api/deals/${id}`, {
+      const response = await fetch(`/api/opportunity/${id}`, {
         method: "DELETE",
       });
       
@@ -149,7 +149,7 @@ export default function DealsPage() {
           notes: deal.notes,
         };
         
-        const response = await fetch(`/api/deals/${dealId}`, {
+        const response = await fetch(`/api/opportunity/${dealId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -334,7 +334,7 @@ export default function DealsPage() {
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Deals</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Opportunities</h2>
           <p className="text-muted-foreground">
             Track and manage your sales pipeline
           </p>

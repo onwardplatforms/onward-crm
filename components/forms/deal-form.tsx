@@ -106,7 +106,7 @@ export function DealForm({
 
   const fetchCompanies = async () => {
     try {
-      const res = await fetch("/api/companies");
+      const res = await fetch("/api/company");
       const data = await res.json();
       setCompanies(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -117,7 +117,7 @@ export function DealForm({
 
   const fetchContacts = async () => {
     try {
-      const res = await fetch("/api/contacts");
+      const res = await fetch("/api/contact");
       const data = await res.json();
       const contactsList = Array.isArray(data) ? data : [];
       setAllContacts(contactsList);
@@ -185,7 +185,7 @@ export function DealForm({
   const onSubmit = async (data: DealFormData) => {
     setLoading(true);
     try {
-      const url = deal ? `/api/deals/${deal.id}` : "/api/deals";
+      const url = deal ? `/api/opportunity/${deal.id}` : "/api/opportunity";
       const method = deal ? "PUT" : "POST";
 
       const submitData = {
