@@ -72,12 +72,12 @@ export default function DealsPage() {
   const fetchDeals = async () => {
     try {
       const response = await fetch("/api/opportunity");
-      if (!response.ok) throw new Error("Failed to fetch deals");
+      if (!response.ok) throw new Error("Failed to fetch opportunities");
       const data = await response.json();
       setDeals(data);
     } catch (error) {
-      console.error("Error fetching deals:", error);
-      toast.error("Failed to load deals");
+      console.error("Error fetching opportunities:", error);
+      toast.error("Failed to load opportunities");
     } finally {
       setLoading(false);
     }
@@ -93,20 +93,20 @@ export default function DealsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this deal?")) return;
+    if (!confirm("Are you sure you want to delete this opportunity?")) return;
     
     try {
       const response = await fetch(`/api/opportunity/${id}`, {
         method: "DELETE",
       });
       
-      if (!response.ok) throw new Error("Failed to delete deal");
+      if (!response.ok) throw new Error("Failed to delete opportunity");
       
       toast.success("Deal deleted successfully");
       fetchDeals();
     } catch (error) {
-      console.error("Error deleting deal:", error);
-      toast.error("Failed to delete deal");
+      console.error("Error deleting opportunity:", error);
+      toast.error("Failed to delete opportunity");
     }
   };
 
@@ -166,7 +166,7 @@ export default function DealsPage() {
           } catch {
             // Not JSON, just log the text
           }
-          throw new Error("Failed to update deal");
+          throw new Error("Failed to update opportunity");
         }
         
         toast.success("Deal stage updated");
@@ -176,8 +176,8 @@ export default function DealsPage() {
           fetchDeals();
         }
       } catch (error) {
-        console.error("Error updating deal stage:", error);
-        toast.error("Failed to update deal stage");
+        console.error("Error updating opportunity stage:", error);
+        toast.error("Failed to update opportunity stage");
         // On error, refetch to get correct state
         fetchDeals();
       }
@@ -341,7 +341,7 @@ export default function DealsPage() {
         </div>
         <Button onClick={() => setFormOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Deal
+          Add Opportunity
         </Button>
       </div>
 
@@ -355,7 +355,7 @@ export default function DealsPage() {
               {formatCompactCurrency(totalPipeline)}
             </div>
             <p className="text-xs text-muted-foreground">
-              {deals.filter(d => !["closed-won", "closed-lost"].includes(d.stage)).length} deals
+              {deals.filter(d => !["closed-won", "closed-lost"].includes(d.stage)).length} opportunities
             </p>
           </CardContent>
         </Card>
@@ -458,7 +458,7 @@ export default function DealsPage() {
                       )}
                       {stageDeals.length === 0 ? (
                         <p className="text-center text-sm text-muted-foreground">
-                          No deals in this stage
+                          No opportunities in this stage
                         </p>
                       ) : (
                         stageDeals.map((deal, index) => (
@@ -587,7 +587,7 @@ export default function DealsPage() {
                       {formatCompactCurrency(totalClosedValue)}
                     </p>
                     <p className="text-xs text-muted-foreground/70">
-                      Completed deals - won or lost
+                      Completed opportunities - won or lost
                     </p>
                   </CardHeader>
                   <CardContent className="flex-1 overflow-hidden px-3 pt-2 pb-3">
@@ -788,7 +788,7 @@ export default function DealsPage() {
                       
                       {!showDropZones && closedWonDeals.length === 0 && closedLostDeals.length === 0 && (
                         <p className="text-center text-sm text-muted-foreground py-8">
-                          No closed deals
+                          No closed opportunities
                         </p>
                       )}
                       </div>
@@ -806,7 +806,7 @@ export default function DealsPage() {
               <div className="flex items-center space-x-2">
                 <Search className="h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search deals..."
+                  placeholder="Search opportunities..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="max-w-sm"
@@ -815,7 +815,7 @@ export default function DealsPage() {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="text-center py-8">Loading deals...</div>
+                <div className="text-center py-8">Loading opportunities...</div>
               ) : (
                 <Table>
                   <TableHeader>
@@ -837,8 +837,8 @@ export default function DealsPage() {
                       <TableRow>
                         <TableCell colSpan={9} className="text-center text-muted-foreground">
                           {searchTerm
-                            ? "No deals found matching your search."
-                            : "No deals found. Create your first deal to get started."}
+                            ? "No opportunities found matching your search."
+                            : "No opportunities found. Create your first opportunity to get started."}
                         </TableCell>
                       </TableRow>
                     ) : (

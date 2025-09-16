@@ -39,7 +39,7 @@ import { currencySchema, formatCurrencyInput } from "@/lib/currency";
 import { useCurrentUser } from "@/lib/hooks/use-current-user";
 
 const dealSchema = z.object({
-  name: z.string().min(1, "Deal name is required"),
+  name: z.string().min(1, "Opportunity name is required"),
   value: currencySchema.optional(),
   licenses: z.coerce.number().min(1).default(1),
   stage: z.string().min(1, "Stage is required"),
@@ -161,7 +161,7 @@ export function DealForm({
         notes: deal.notes || "",
       });
     } else if (currentUser?.id && !form.getValues("assignedToId")) {
-      // Set default assignedToId for new deals
+      // Set default assignedToId for new opportunities
       form.setValue("assignedToId", currentUser.id);
     }
   }, [deal, form, currentUser]);
@@ -204,19 +204,19 @@ export function DealForm({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save deal");
+        throw new Error("Failed to save opportunity");
       }
 
       toast.success(
-        deal ? "Deal updated successfully" : "Deal created successfully"
+        deal ? "Opportunity updated successfully" : "Opportunity created successfully"
       );
       
       form.reset();
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
-      console.error("Error saving deal:", error);
-      toast.error("Failed to save deal");
+      console.error("Error saving opportunity:", error);
+      toast.error("Failed to save opportunity");
     } finally {
       setLoading(false);
     }
@@ -281,12 +281,12 @@ export function DealForm({
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>
-            {deal ? "Edit Deal" : "Add New Deal"}
+            {deal ? "Edit Opportunity" : "Add New Opportunity"}
           </DialogTitle>
           <DialogDescription>
             {deal
-              ? "Update the deal information below."
-              : "Enter the details for the new deal."}
+              ? "Update the opportunity information below."
+              : "Enter the details for the new opportunity."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -297,7 +297,7 @@ export function DealForm({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Deal Name</FormLabel>
+                  <FormLabel>Opportunity Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Website Redesign Project" {...field} />
                   </FormControl>
@@ -312,7 +312,7 @@ export function DealForm({
                 name="value"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Deal Value</FormLabel>
+                    <FormLabel>Opportunity Value</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -562,7 +562,7 @@ export function DealForm({
                   <FormLabel>Notes</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Add any additional notes about this deal..." 
+                      placeholder="Add any additional notes about this opportunity..." 
                       className="min-h-[100px]"
                       {...field} 
                     />

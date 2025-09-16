@@ -113,7 +113,7 @@ export function ActivityForm({
       const data = await res.json();
       setDeals(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error fetching deals:", error);
+      console.error("Error fetching opportunities:", error);
       setDeals([]);
     }
   };
@@ -320,14 +320,14 @@ export function ActivityForm({
               name="dealId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Deal (Optional)</FormLabel>
+                  <FormLabel>Opportunity (Optional)</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select deal" />
+                        <SelectValue placeholder="Select opportunity" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
