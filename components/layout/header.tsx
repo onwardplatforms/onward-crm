@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, Sun, LogOut } from "lucide-react";
+import { Moon, Sun, LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,11 +18,13 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { GlobalSearch } from "@/components/global-search";
 import { NotificationDropdown } from "@/components/notification-dropdown";
+import { useSidebar } from "@/contexts/sidebar-context";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
   const { user } = useSession();
   const router = useRouter();
+  const { isCollapsed, toggleSidebar } = useSidebar();
 
   const handleSignOut = async () => {
     try {
@@ -46,7 +48,20 @@ export function Header() {
 
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-6">
-      <div className="flex flex-1 items-center">
+      <div className="flex flex-1 items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="h-9 w-9"
+        >
+          {isCollapsed ? (
+            <PanelLeftOpen className="h-5 w-5" />
+          ) : (
+            <PanelLeftClose className="h-5 w-5" />
+          )}
+          <span className="sr-only">Toggle sidebar</span>
+        </Button>
         <GlobalSearch />
       </div>
       <div className="flex items-center gap-4">
