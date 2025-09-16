@@ -107,7 +107,7 @@ export async function POST(
       );
     }
     
-    // Check if user is already a member
+    // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
       include: {
@@ -116,8 +116,17 @@ export async function POST(
         }
       }
     });
-    
-    if (existingUser && existingUser.workspaces.length > 0) {
+
+    // Check if user exists first
+    if (!existingUser) {
+      return NextResponse.json(
+        { error: `No user found with email ${email}. Please ask them to sign up first at ${process.env.NEXT_PUBLIC_APP_URL || 'https://crm.onwardplatforms.com'}/signup` },
+        { status: 400 }
+      );
+    }
+
+    // Check if they're already a member
+    if (existingUser.workspaces.length > 0) {
       return NextResponse.json(
         { error: "User is already a member of this workspace" },
         { status: 400 }

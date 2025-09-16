@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 // POST accept invite
 export async function POST(
@@ -8,14 +10,20 @@ export async function POST(
 ) {
   try {
     const { token } = await params;
-    const userId = request.headers.get("x-user-id");
-    
-    if (!userId) {
+
+    // Get the authenticated session
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session || !session.user) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: "You must be signed in to accept an invite" },
         { status: 401 }
       );
     }
+
+    const userId = session.user.id;
     
     // Find the invite
     const invite = await prisma.workspaceInvite.findUnique({
@@ -54,14 +62,8 @@ export async function POST(
       );
     }
     
-    // Get user details
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { email: true, name: true }
-    });
-    
     // Check if email matches (if invite was sent to specific email)
-    if (invite.email && user?.email !== invite.email) {
+    if (invite.email && session.user.email !== invite.email) {
       return NextResponse.json(
         { error: "This invite was sent to a different email address" },
         { status: 403 }
@@ -109,7 +111,7 @@ export async function POST(
       data: {
         type: "invite_accepted",
         title: "Invitation Accepted",
-        message: `${user?.name || user?.email} has joined ${invite.workspace.name}`,
+        message: `${session.user.name || session.user.email} has joined ${invite.workspace.name}`,
         userId: invite.invitedById,
         workspaceId: invite.workspaceId,
         inviteId: invite.id

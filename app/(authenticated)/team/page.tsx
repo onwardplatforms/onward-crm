@@ -20,9 +20,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
+import {
   Plus, Search, UserMinus, LogOut,
-  MoreHorizontal, Shield, Crown, User
+  MoreHorizontal, Shield, Crown, User,
+  Clock, X, Copy
 } from "lucide-react";
 import { WorkspaceInviteModal } from "@/components/workspace-invite-modal";
 import { toast } from "sonner";
@@ -46,7 +47,35 @@ export default function TeamPage() {
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [workspaceId, setWorkspaceId] = useState<string>("");
   const [workspaceName, setWorkspaceName] = useState<string>("");
+  const [pendingInvites, setPendingInvites] = useState<Array<{
+    id: string;
+    email: string;
+    role: string;
+    invitedBy: {
+      name?: string;
+      email: string;
+    };
+    createdAt: string;
+    expiresAt: string;
+    token: string;
+  }>>([]);
   const router = useRouter();
+
+  const fetchPendingInvites = async (workspaceId: string) => {
+    try {
+      const response = await fetch(`/api/workspaces/${workspaceId}/invites`);
+      if (response.ok) {
+        const invites = await response.json();
+        setPendingInvites(invites || []);
+      } else {
+        console.error("Error fetching invites");
+        setPendingInvites([]);
+      }
+    } catch (error) {
+      console.error("Error fetching invites:", error);
+      setPendingInvites([]);
+    }
+  };
 
   const fetchTeamMembers = async () => {
     try {
@@ -57,19 +86,24 @@ export default function TeamPage() {
         const currentWorkspace = workspaceData.workspaces?.find(
           (w: { id: string; name: string }) => w.id === workspaceData.currentWorkspaceId
         );
-        
+
         if (currentWorkspace) {
           setWorkspaceId(currentWorkspace.id);
           setWorkspaceName(currentWorkspace.name);
-          
+
           // Then get workspace members
           const response = await fetch(`/api/workspaces/${currentWorkspace.id}/members`);
-          
+
           if (response.ok) {
             const data = await response.json();
             setTeamMembers(data.members || []);
             setCurrentUserRole(data.currentUserRole);
             setCurrentUserId(data.currentUserId);
+
+            // Fetch pending invites if user is admin/owner
+            if (data.currentUserRole === "owner" || data.currentUserRole === "admin") {
+              await fetchPendingInvites(currentWorkspace.id);
+            }
           } else {
             console.error("Error fetching team members");
             setTeamMembers([]);
@@ -88,6 +122,33 @@ export default function TeamPage() {
   useEffect(() => {
     fetchTeamMembers();
   }, []);
+
+  const handleCancelInvite = async (inviteId: string) => {
+    if (!confirm("Are you sure you want to cancel this invite?")) return;
+
+    try {
+      const response = await fetch(`/api/workspaces/${workspaceId}/invites/${inviteId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        toast.success("Invite cancelled");
+        await fetchPendingInvites(workspaceId);
+      } else {
+        const error = await response.json();
+        toast.error(error.error || "Failed to cancel invite");
+      }
+    } catch (error) {
+      console.error("Error cancelling invite:", error);
+      toast.error("Failed to cancel invite");
+    }
+  };
+
+  const copyInviteLink = (token: string) => {
+    const inviteUrl = `${window.location.origin}/invite/${token}`;
+    navigator.clipboard.writeText(inviteUrl);
+    toast.success("Invite link copied to clipboard");
+  };
 
   const handleRemoveMember = async (memberId: string, memberName: string) => {
     const isLeavingWorkspace = memberId === currentUserId;
@@ -310,9 +371,88 @@ export default function TeamPage() {
         </CardContent>
       </Card>
 
+      {/* Pending Invites Section */}
+      {(currentUserRole === "owner" || currentUserRole === "admin") && pendingInvites.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Pending Invites</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Invited By</TableHead>
+                  <TableHead>Expires</TableHead>
+                  <TableHead className="w-[100px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingInvites.map((invite) => (
+                  <TableRow key={invite.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        {invite.email}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getRoleBadgeVariant(invite.role)}>
+                        <span className="flex items-center gap-1">
+                          {getRoleIcon(invite.role)}
+                          {invite.role.charAt(0).toUpperCase() + invite.role.slice(1)}
+                        </span>
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-muted-foreground">
+                        {invite.invitedBy.name || invite.invitedBy.email}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-muted-foreground">
+                        {new Date(invite.expiresAt).toLocaleDateString()}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => copyInviteLink(invite.token)}
+                          title="Copy invite link"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleCancelInvite(invite.id)}
+                          title="Cancel invite"
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
       <WorkspaceInviteModal
         open={inviteModalOpen}
-        onOpenChange={setInviteModalOpen}
+        onOpenChange={(open) => {
+          setInviteModalOpen(open);
+          // Refresh invites when modal closes
+          if (!open && workspaceId && (currentUserRole === "owner" || currentUserRole === "admin")) {
+            fetchPendingInvites(workspaceId);
+          }
+        }}
         workspaceId={workspaceId}
         workspaceName={workspaceName}
       />
