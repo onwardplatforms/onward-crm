@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Plus, Search, MoreHorizontal, Pencil, Trash, ArrowUpRight } from "lucide-react";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import Link from "next/link";
 import { ContactForm } from "@/components/forms/contact-form";
 import { toast } from "sonner";
@@ -64,13 +64,13 @@ export default function ContactsPage() {
         fetch("/api/contact"),
         fetch("/api/activity")
       ]);
-      
+
       if (!contactsRes.ok) throw new Error("Failed to fetch contacts");
       if (!activitiesRes.ok) throw new Error("Failed to fetch activities");
-      
+
       const contactsData = await contactsRes.json();
       const activitiesData = await activitiesRes.json();
-      
+
       setContacts(contactsData);
       setActivities(Array.isArray(activitiesData) ? activitiesData : []);
     } catch (error) {
@@ -101,14 +101,14 @@ export default function ContactsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this contact?")) return;
-    
+
     try {
       const response = await fetch(`/api/contact/${id}`, {
         method: "DELETE",
       });
-      
+
       if (!response.ok) throw new Error("Failed to delete contact");
-      
+
       toast.success("Contact deleted successfully");
       fetchContacts();
     } catch (error) {
@@ -133,187 +133,290 @@ export default function ContactsPage() {
       contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.company?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
-  // Helper function to get last contacted date for a contact
+
+  // Helper function to get last contacted date for a contact (past activities only)
   const getLastContactedDate = (contactId: string) => {
-    // Filter activities that include this contact
-    const contactActivities = activities.filter(a => 
-      a.contacts && Array.isArray(a.contacts) && 
-      a.contacts.some((c: { id: string }) => c.id === contactId)
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // End of today
+
+    // Filter activities that include this contact and are in the past
+    const contactActivities = activities.filter(a =>
+      a.contacts && Array.isArray(a.contacts) &&
+      a.contacts.some((c: { id: string }) => c.id === contactId) &&
+      new Date(a.date) <= today
     );
-    
+
     if (contactActivities.length === 0) return null;
-    
+
     // Sort by date descending and return the most recent
-    const sorted = contactActivities.sort((a, b) => 
+    const sorted = contactActivities.sort((a, b) =>
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
-    
+
     return sorted[0];
   };
 
+  // Helper function to get next contact date for a contact (future activities only)
+  const getNextContactDate = (contactId: string) => {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // End of today
+
+    // Filter activities that include this contact and are in the future
+    const contactActivities = activities.filter(a =>
+      a.contacts && Array.isArray(a.contacts) &&
+      a.contacts.some((c: { id: string }) => c.id === contactId) &&
+      new Date(a.date) > today
+    );
+
+    if (contactActivities.length === 0) return null;
+
+    // Sort by date ascending and return the nearest future activity
+    const sorted = contactActivities.sort((a, b) =>
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    return sorted[0];
+  };
+
+  // Helper function to get total contact count (past activities only)
+  const getTotalContactCount = (contactId: string) => {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // End of today
+
+    return activities.filter(a =>
+      a.contacts && Array.isArray(a.contacts) &&
+      a.contacts.some((c: { id: string }) => c.id === contactId) &&
+      new Date(a.date) <= today
+    ).length;
+  };
+
+  // Helper function to format days difference
+  const formatDaysDifference = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const targetDate = new Date(date);
+    targetDate.setHours(0, 0, 0, 0);
+
+    const days = differenceInDays(targetDate, today);
+
+    if (days === 0) return "Today";
+    if (days === 1) return "Tomorrow";
+    if (days === -1) return "Yesterday";
+    if (days > 0) return `${days}d`;
+    return `${Math.abs(days)}d ago`;
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Contacts</h2>
-          <p className="text-muted-foreground">
-            Manage your contacts and their information
-          </p>
+    <div className="h-screen flex flex-col">
+      <div className="flex-shrink-0 p-4 sm:p-6 pb-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Contacts</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Manage your contacts and their information
+            </p>
+          </div>
+          <Button onClick={() => setFormOpen(true)} size="sm" className="sm:size-default">
+            <Plus className="mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">Add Contact</span>
+            <span className="sm:hidden">Add</span>
+          </Button>
         </div>
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Contact
-        </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center space-x-2">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search contacts..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8">Loading contacts...</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Last Contacted</TableHead>
-                  <TableHead>Assigned To</TableHead>
-                  <TableHead className="w-[70px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredContacts.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
-                      {searchTerm
-                        ? "No contacts found matching your search."
-                        : "No contacts found. Add your first contact to get started."}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredContacts.map((contact) => (
-                    <TableRow key={contact.id}>
-                      <TableCell>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">
-                              {contact.firstName} {contact.lastName}
-                            </p>
-                            {contact.linkedinUrl && (
-                              <a
-                                href={contact.linkedinUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                                title="View LinkedIn Profile"
-                              >
-                                <ArrowUpRight className="h-3 w-3" />
-                              </a>
-                            )}
-                          </div>
-                          {contact.company && (
-                            <p className="text-sm text-muted-foreground">
-                              {contact.company.name}
-                            </p>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {contact.email ? (
-                          <a
-                            href={`mailto:${contact.email}`}
-                            className="text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {contact.email}
-                          </a>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {contact.phone ? (
-                          <a
-                            href={`tel:${contact.phone}`}
-                            className="text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {formatPhoneNumber(contact.phone)}
-                          </a>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>{contact.title || <span className="text-muted-foreground">-</span>}</TableCell>
-                      <TableCell>
-                        {(() => {
-                          const lastActivity = getLastContactedDate(contact.id);
-                          if (!lastActivity) {
-                            return <span className="text-muted-foreground">Never</span>;
-                          }
-                          return (
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm">
-                                {format(new Date(lastActivity.date), "MMM d, yyyy")}
-                              </span>
-                              <Link 
-                                href={`/activities?contactId=${contact.id}`}
-                                className="text-muted-foreground hover:text-foreground transition-colors"
-                              >
-                                <ArrowUpRight className="h-3 w-3" />
-                              </Link>
+      <div className="flex-1 overflow-hidden px-4 sm:px-6 pb-4 sm:pb-6">
+        <Card className="h-full flex flex-col">
+          <CardHeader className="flex-shrink-0 px-4 sm:px-6">
+            <div className="flex items-center space-x-2">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search contacts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
+              />
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 overflow-hidden px-4 sm:px-6">
+            {loading ? (
+              <div className="text-center py-8">Loading contacts...</div>
+            ) : filteredContacts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {searchTerm
+                  ? "No contacts found matching your search."
+                  : "No contacts found. Add your first contact to get started."}
+              </div>
+            ) : (
+              <div className="h-full overflow-auto">
+                <div className="min-w-fit">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[200px] min-w-[200px]">Contact</TableHead>
+                        <TableHead className="hidden sm:table-cell w-[100px] min-w-[100px] text-center">Last Contact</TableHead>
+                        <TableHead className="hidden md:table-cell w-[100px] min-w-[100px] text-center">Next Contact</TableHead>
+                        <TableHead className="hidden lg:table-cell w-[100px] min-w-[100px] text-center">Touchpoints</TableHead>
+                        <TableHead className="hidden xl:table-cell w-[200px] min-w-[200px]">Email</TableHead>
+                        <TableHead className="hidden 2xl:table-cell w-[140px] min-w-[140px]">Phone</TableHead>
+                        <TableHead className="hidden 2xl:table-cell w-[150px] min-w-[150px]">Title</TableHead>
+                        <TableHead className="w-[50px] min-w-[50px]"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredContacts.map((contact) => (
+                        <TableRow key={contact.id}>
+                          <TableCell className="w-[200px] min-w-[200px]">
+                            <div className="space-y-1">
+                              <div className="flex items-start gap-2">
+                                <p className="font-medium truncate max-w-[160px]">
+                                  {contact.firstName} {contact.lastName}
+                                </p>
+                                {contact.linkedinUrl && (
+                                  <a
+                                    href={contact.linkedinUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 mt-0.5"
+                                    title="View LinkedIn Profile"
+                                  >
+                                    <ArrowUpRight className="h-3 w-3" />
+                                  </a>
+                                )}
+                              </div>
+                              {contact.company && (
+                                <p className="text-xs sm:text-sm text-muted-foreground truncate max-w-[180px]">
+                                  {contact.company.name}
+                                </p>
+                              )}
+                              {/* Mobile-only: Show total contacts */}
+                              <div className="sm:hidden text-xs text-muted-foreground">
+                                {getTotalContactCount(contact.id)} activities
+                              </div>
                             </div>
-                          );
-                        })()}
-                      </TableCell>
-                      <TableCell>
-                        <AssignedUserDisplay 
-                          user={contact.assignedTo || null} 
-                          workspaceId={workspaceId}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(contact)}>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(contact.id)}
-                              className="text-red-600"
-                            >
-                              <Trash className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                          </TableCell>
+
+                          {/* Last Contact - visible from 640px */}
+                          <TableCell className="hidden sm:table-cell w-[100px] min-w-[100px] text-center">
+                            {(() => {
+                              const lastActivity = getLastContactedDate(contact.id);
+                              if (!lastActivity) {
+                                return <span className="text-muted-foreground text-xs sm:text-sm">-</span>;
+                              }
+                              const daysText = formatDaysDifference(new Date(lastActivity.date));
+                              const isOld = differenceInDays(new Date(), new Date(lastActivity.date)) > 30;
+                              return (
+                                <Link
+                                  href={`/activity?contactId=${contact.id}`}
+                                  className="inline-flex items-center gap-1 text-xs sm:text-sm hover:text-foreground transition-colors"
+                                  title={format(new Date(lastActivity.date), "MMM d, yyyy")}
+                                >
+                                  <span className={isOld ? "text-orange-500 font-medium" : "text-muted-foreground"}>
+                                    {daysText}
+                                  </span>
+                                </Link>
+                              );
+                            })()}
+                          </TableCell>
+
+                          {/* Next Contact - visible from 768px */}
+                          <TableCell className="hidden md:table-cell w-[100px] min-w-[100px] text-center">
+                            {(() => {
+                              const nextActivity = getNextContactDate(contact.id);
+                              if (!nextActivity) {
+                                return <span className="text-muted-foreground text-xs sm:text-sm">-</span>;
+                              }
+                              const daysText = formatDaysDifference(new Date(nextActivity.date));
+                              const isUrgent = differenceInDays(new Date(nextActivity.date), new Date()) <= 1;
+                              return (
+                                <Link
+                                  href={`/activity?contactId=${contact.id}`}
+                                  className="inline-flex items-center gap-1 text-xs sm:text-sm hover:text-foreground transition-colors"
+                                  title={format(new Date(nextActivity.date), "MMM d, yyyy")}
+                                >
+                                  <span className={isUrgent ? "text-red-500 font-medium" : "text-muted-foreground"}>
+                                    {daysText}
+                                  </span>
+                                </Link>
+                              );
+                            })()}
+                          </TableCell>
+
+                          {/* Touchpoints - visible from 1024px */}
+                          <TableCell className="hidden lg:table-cell w-[100px] min-w-[100px] text-center">
+                            <span className="text-sm font-medium">
+                              {getTotalContactCount(contact.id)}
+                            </span>
+                          </TableCell>
+
+                          {/* Email - visible from 1280px */}
+                          <TableCell className="hidden xl:table-cell w-[200px] min-w-[200px]">
+                            {contact.email ? (
+                              <a
+                                href={`mailto:${contact.email}`}
+                                className="text-muted-foreground hover:text-foreground transition-colors text-xs sm:text-sm truncate block max-w-[180px]"
+                                title={contact.email}
+                              >
+                                {contact.email}
+                              </a>
+                            ) : (
+                              <span className="text-muted-foreground text-xs sm:text-sm">-</span>
+                            )}
+                          </TableCell>
+
+                          {/* Phone - visible from 1536px */}
+                          <TableCell className="hidden 2xl:table-cell w-[140px] min-w-[140px]">
+                            {contact.phone ? (
+                              <a
+                                href={`tel:${contact.phone}`}
+                                className="text-muted-foreground hover:text-foreground transition-colors text-xs sm:text-sm truncate block max-w-[130px]"
+                              >
+                                {formatPhoneNumber(contact.phone)}
+                              </a>
+                            ) : (
+                              <span className="text-muted-foreground text-xs sm:text-sm">-</span>
+                            )}
+                          </TableCell>
+
+                          {/* Title - visible from 1536px */}
+                          <TableCell className="hidden 2xl:table-cell w-[150px] min-w-[150px]">
+                            <div className="text-xs sm:text-sm truncate max-w-[140px]">
+                              {contact.title || <span className="text-muted-foreground">-</span>}
+                            </div>
+                          </TableCell>
+
+                          {/* Actions - always visible */}
+                          <TableCell className="w-[50px] min-w-[50px]">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleEdit(contact)}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDelete(contact.id)}
+                                  className="text-red-600"
+                                >
+                                  <Trash className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       <ContactForm
         open={formOpen}

@@ -180,22 +180,26 @@ export default function ActivitiesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Activities</h2>
-          <p className="text-muted-foreground">
-            Track all your customer interactions and communications
-          </p>
+    <div className="flex flex-col h-full max-h-screen">
+      <div className="flex-shrink-0 p-4 sm:p-6 pb-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Activities</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Track all your customer interactions and communications
+            </p>
+          </div>
+          <Button onClick={() => setFormOpen(true)} size="sm" className="sm:size-default">
+            <Plus className="mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">Log Activity</span>
+            <span className="sm:hidden">Log</span>
+          </Button>
         </div>
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Log Activity
-        </Button>
       </div>
 
-      <Card>
-        <CardHeader>
+      <div className="flex-1 overflow-hidden px-4 sm:px-6 pb-4 sm:pb-6">
+        <Card className="h-full flex flex-col">
+          <CardHeader className="flex-shrink-0">
           <div className="flex items-center gap-4">
             <div className="flex items-center space-x-2 flex-1">
               <Search className="h-4 w-4 text-muted-foreground" />
@@ -206,50 +210,53 @@ export default function ActivitiesPage() {
                 className="max-w-sm"
               />
             </div>
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Date range" />
-              </SelectTrigger>
-              <SelectContent>
-                {DATE_FILTERS.map((filter) => (
-                  <SelectItem key={filter.value} value={filter.value}>
-                    {filter.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Filter by type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                {ACTIVITY_TYPES.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="hidden sm:flex items-center gap-4">
+              <Select value={dateFilter} onValueChange={setDateFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Date range" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DATE_FILTERS.map((filter) => (
+                    <SelectItem key={filter.value} value={filter.value}>
+                      {filter.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Filter by type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  {ACTIVITY_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8">Loading activities...</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Deal</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Assigned To</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="w-[70px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
+          </CardHeader>
+          <CardContent className="flex-1 overflow-hidden">
+            {loading ? (
+              <div className="text-center py-8">Loading activities...</div>
+            ) : (
+              <div className="overflow-auto h-full">
+                <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Subject</TableHead>
+                    <TableHead className="hidden sm:table-cell">Contact</TableHead>
+                    <TableHead className="hidden md:table-cell">Date</TableHead>
+                    <TableHead className="hidden lg:table-cell">Type</TableHead>
+                    <TableHead className="hidden xl:table-cell">Opportunity</TableHead>
+                    <TableHead className="hidden 2xl:table-cell">Assigned To</TableHead>
+                    <TableHead className="hidden 2xl:table-cell">Description</TableHead>
+                    <TableHead className="w-[70px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
               <TableBody>
                 {filteredActivities.length === 0 ? (
                   <TableRow>
@@ -263,6 +270,36 @@ export default function ActivitiesPage() {
                   filteredActivities.map((activity) => (
                     <TableRow key={activity.id}>
                       <TableCell>
+                        <div className="max-w-[200px] font-medium truncate" title={activity.subject}>
+                          {activity.subject}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <div className="max-w-[150px]">
+                          {activity.contacts && activity.contacts.length > 0 ? (
+                            <div className="space-y-1">
+                              {activity.contacts.map((contact) => (
+                                <div key={contact.id} className="text-sm">
+                                  <div className="truncate">{contact.firstName} {contact.lastName}</div>
+                                  {contact.company && (
+                                    <div className="text-muted-foreground text-xs truncate">
+                                      {contact.company.name}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <span className="text-sm">
+                          {format(new Date(activity.date), "MMM d, yyyy")}
+                        </span>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         <div className="flex items-center gap-2">
                           {getActivityIcon(activity.type)}
                           <span className="text-sm font-medium">
@@ -270,52 +307,32 @@ export default function ActivitiesPage() {
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="font-medium">
-                        {activity.subject}
+                      <TableCell className="hidden xl:table-cell">
+                        <div className="max-w-[150px]">
+                          {activity.deal ? (
+                            <span className="text-sm truncate block" title={activity.deal.name}>{activity.deal.name}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </div>
                       </TableCell>
-                      <TableCell>
-                        {activity.contacts && activity.contacts.length > 0 ? (
-                          <div className="space-y-1">
-                            {activity.contacts.map((contact) => (
-                              <div key={contact.id} className="text-sm">
-                                <div>{contact.firstName} {contact.lastName}</div>
-                                {contact.company && (
-                                  <div className="text-muted-foreground text-xs">
-                                    {contact.company.name}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
+                      <TableCell className="hidden 2xl:table-cell">
+                        <div className="max-w-[150px]">
+                          {activity.assignedTo ? (
+                            <span className="text-sm truncate block" title={activity.assignedTo.name || activity.assignedTo.email}>
+                              {activity.assignedTo.name || activity.assignedTo.email}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">Unassigned</span>
+                          )}
+                        </div>
                       </TableCell>
-                      <TableCell>
-                        {activity.deal ? (
-                          <span className="text-sm">{activity.deal.name}</span>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">
-                          {format(new Date(activity.date), "MMM d, yyyy")}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {activity.assignedTo ? (
-                          <span className="text-sm">
-                            {activity.assignedTo.name || activity.assignedTo.email}
+                      <TableCell className="hidden 2xl:table-cell">
+                        <div className="max-w-[250px]">
+                          <span className="text-sm text-muted-foreground break-words line-clamp-2">
+                            {activity.description || "-"}
                           </span>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">Unassigned</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground line-clamp-2">
-                          {activity.description || "-"}
-                        </span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -343,10 +360,12 @@ export default function ActivitiesPage() {
                   ))
                 )}
               </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       <ActivityForm
         open={formOpen}

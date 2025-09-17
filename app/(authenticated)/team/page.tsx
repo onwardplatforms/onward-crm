@@ -225,24 +225,27 @@ export default function TeamPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Team</h2>
-          <p className="text-muted-foreground">
-            Members of {workspaceName || "your workspace"}
-          </p>
+    <div className="flex flex-col h-full max-h-screen">
+      <div className="flex-shrink-0 p-6 pb-0">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Team</h2>
+            <p className="text-muted-foreground">
+              Members of {workspaceName || "your workspace"}
+            </p>
+          </div>
+          {(currentUserRole === "owner" || currentUserRole === "admin") && (
+            <Button onClick={() => setInviteModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Invite Member
+            </Button>
+          )}
         </div>
-        {(currentUserRole === "owner" || currentUserRole === "admin") && (
-          <Button onClick={() => setInviteModalOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Invite Member
-          </Button>
-        )}
       </div>
 
-      <Card>
-        <CardHeader>
+      <div className="flex-1 overflow-hidden px-6 pb-6 space-y-6">
+        <Card className="h-auto">
+          <CardHeader className="flex-shrink-0">
           <div className="flex items-center space-x-2">
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input
@@ -252,21 +255,22 @@ export default function TeamPage() {
               className="max-w-sm"
             />
           </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8">Loading team members...</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Member</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead className="w-[70px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-8">Loading team members...</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Member</TableHead>
+                    <TableHead className="hidden sm:table-cell">Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead className="hidden md:table-cell">Joined</TableHead>
+                    <TableHead className="w-[70px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
               <TableBody>
                 {filteredMembers.length === 0 ? (
                   <TableRow>
@@ -280,27 +284,30 @@ export default function TeamPage() {
                   filteredMembers.map((member) => (
                     <TableRow key={member.id}>
                       <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8">
+                        <div className="flex items-start gap-3 min-w-[150px] max-w-[250px]">
+                          <Avatar className="h-8 w-8 flex-shrink-0 mt-0.5">
                             <AvatarFallback className="text-xs">
                               {member.name ? getInitials(member.name) : member.email?.[0]?.toUpperCase() || "U"}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
-                            <p className="font-medium">{member.name || member.email}</p>
+                          <div className="min-w-0">
+                            <p className="font-medium truncate">{member.name || member.email}</p>
                             {member.id === currentUserId && (
                               <p className="text-xs text-muted-foreground">(You)</p>
                             )}
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <a
-                          href={`mailto:${member.email}`}
-                          className="text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          {member.email}
-                        </a>
+                      <TableCell className="hidden sm:table-cell">
+                        <div className="max-w-[200px]">
+                          <a
+                            href={`mailto:${member.email}`}
+                            className="text-muted-foreground hover:text-foreground transition-colors block truncate"
+                            title={member.email}
+                          >
+                            {member.email}
+                          </a>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant={getRoleBadgeVariant(member.role)}>
@@ -310,7 +317,7 @@ export default function TeamPage() {
                           </span>
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
                         <span className="text-sm text-muted-foreground">
                           {member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : "-"}
                         </span>
@@ -366,35 +373,37 @@ export default function TeamPage() {
                   ))
                 )}
               </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Pending Invites Section */}
-      {(currentUserRole === "owner" || currentUserRole === "admin") && pendingInvites.length > 0 && (
-        <Card>
+        {/* Pending Invites Section */}
+        {(currentUserRole === "owner" || currentUserRole === "admin") && pendingInvites.length > 0 && (
+          <Card>
           <CardHeader>
             <CardTitle>Pending Invites</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Invited By</TableHead>
-                  <TableHead>Expires</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead className="hidden sm:table-cell">Invited By</TableHead>
+                    <TableHead className="hidden md:table-cell">Expires</TableHead>
+                    <TableHead className="w-[100px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
               <TableBody>
                 {pendingInvites.map((invite) => (
                   <TableRow key={invite.id}>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        {invite.email}
+                      <div className="flex items-start gap-2 min-w-[150px] max-w-[250px]">
+                        <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                        <span className="truncate" title={invite.email}>{invite.email}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -405,12 +414,14 @@ export default function TeamPage() {
                         </span>
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">
-                        {invite.invitedBy.name || invite.invitedBy.email}
-                      </span>
+                    <TableCell className="hidden sm:table-cell">
+                      <div className="max-w-[150px]">
+                        <span className="text-sm text-muted-foreground truncate block" title={invite.invitedBy.name || invite.invitedBy.email}>
+                          {invite.invitedBy.name || invite.invitedBy.email}
+                        </span>
+                      </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <span className="text-sm text-muted-foreground">
                         {new Date(invite.expiresAt).toLocaleDateString()}
                       </span>
@@ -439,10 +450,12 @@ export default function TeamPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       <WorkspaceInviteModal
         open={inviteModalOpen}

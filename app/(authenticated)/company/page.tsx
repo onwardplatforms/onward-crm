@@ -103,49 +103,54 @@ export default function CompaniesPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Companies</h2>
-          <p className="text-muted-foreground">
-            Manage companies and their details
-          </p>
+    <div className="flex flex-col h-full max-h-screen">
+      <div className="flex-shrink-0 p-4 sm:p-6 pb-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Companies</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Manage companies and their details
+            </p>
+          </div>
+          <Button onClick={() => setFormOpen(true)} size="sm" className="sm:size-default">
+            <Plus className="mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">Add Company</span>
+            <span className="sm:hidden">Add</span>
+          </Button>
         </div>
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Company
-        </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center space-x-2">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search companies..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8">Loading companies...</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Website</TableHead>
-                  <TableHead>Industry</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Contacts</TableHead>
-                  <TableHead>Assigned To</TableHead>
-                  <TableHead className="w-[70px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
+      <div className="flex-1 overflow-hidden px-4 sm:px-6 pb-4 sm:pb-6">
+        <Card className="h-full flex flex-col">
+          <CardHeader className="flex-shrink-0">
+            <div className="flex items-center space-x-2">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search companies..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
+              />
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 overflow-hidden">
+            {loading ? (
+              <div className="text-center py-8">Loading companies...</div>
+            ) : (
+              <div className="overflow-auto h-full">
+                <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead className="hidden sm:table-cell">Website</TableHead>
+                    <TableHead className="hidden md:table-cell">Industry</TableHead>
+                    <TableHead className="hidden lg:table-cell">Size</TableHead>
+                    <TableHead className="hidden lg:table-cell">Location</TableHead>
+                    <TableHead className="hidden sm:table-cell">Contacts</TableHead>
+                    <TableHead className="hidden md:table-cell">Assigned To</TableHead>
+                    <TableHead className="w-[70px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
               <TableBody>
                 {filteredCompanies.length === 0 ? (
                   <TableRow>
@@ -158,53 +163,71 @@ export default function CompaniesPage() {
                 ) : (
                   filteredCompanies.map((company) => (
                     <TableRow key={company.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          {company.name}
-                          {company.linkedin && (
+                      <TableCell>
+                        <div className="min-w-[150px] max-w-[250px]">
+                          <div className="flex items-start gap-2">
+                            <span className="font-medium truncate">{company.name}</span>
+                            {company.linkedin && (
+                              <a
+                                href={company.linkedin}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 mt-0.5"
+                                title="View LinkedIn Company Page"
+                              >
+                                <ArrowUpRight className="h-3 w-3" />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <div className="max-w-[200px]">
+                          {company.website ? (
                             <a
-                              href={company.linkedin}
+                              href={company.website}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                              title="View LinkedIn Company Page"
+                              className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
                             >
-                              <ArrowUpRight className="h-3 w-3" />
+                              <span className="truncate">{company.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}</span>
+                              <ArrowUpRight className="h-3 w-3 flex-shrink-0" />
                             </a>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        {company.website && (
-                          <a
-                            href={company.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {company.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
-                            <ArrowUpRight className="h-3 w-3" />
-                          </a>
-                        )}
+                      <TableCell className="hidden md:table-cell">
+                        <div className="max-w-[150px] truncate" title={company.industry || undefined}>
+                          {company.industry || <span className="text-muted-foreground">-</span>}
+                        </div>
                       </TableCell>
-                      <TableCell>{company.industry}</TableCell>
-                      <TableCell>{company.size}</TableCell>
-                      <TableCell>
-                        <span className="text-muted-foreground">-</span>
+                      <TableCell className="hidden lg:table-cell">
+                        <div className="max-w-[100px] truncate">
+                          {company.size || <span className="text-muted-foreground">-</span>}
+                        </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        <div className="max-w-[150px] truncate">
+                          <span className="text-muted-foreground">-</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <Badge variant="secondary">
                           {company._count?.contacts || 0}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        {company.assignedTo ? (
-                          <span className="text-sm">
-                            {company.assignedTo.name || company.assignedTo.email}
-                          </span>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">Unassigned</span>
-                        )}
+                      <TableCell className="hidden md:table-cell">
+                        <div className="max-w-[150px]">
+                          {company.assignedTo ? (
+                            <span className="text-sm truncate block" title={company.assignedTo.name || company.assignedTo.email}>
+                              {company.assignedTo.name || company.assignedTo.email}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">Unassigned</span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -232,10 +255,12 @@ export default function CompaniesPage() {
                   ))
                 )}
               </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       <CompanyForm
         open={formOpen}
