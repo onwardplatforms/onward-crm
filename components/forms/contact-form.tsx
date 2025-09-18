@@ -27,13 +27,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { MentionTextarea } from "@/components/ui/mention-textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { CompanyForm } from "./company-form";
 import { formatPhoneOnChange } from "@/lib/phone";
 import { useCurrentUser } from "@/lib/hooks/use-current-user";
+import { createMentionNotifications } from "@/lib/notifications/mentions";
+import { useSession } from "@/components/providers/session-provider";
 
 const contactSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -84,7 +86,9 @@ export function ContactForm({
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name?: string; email: string; isActive?: boolean }>>([]);
   const [companyFormOpen, setCompanyFormOpen] = useState(false);
+  const [mentions, setMentions] = useState<string[]>([]);
   const { user: currentUser } = useCurrentUser();
+  const { user: sessionUser } = useSession();
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
@@ -175,6 +179,22 @@ export function ContactForm({
         throw new Error(errorData.error || "Failed to save contact");
       }
 
+      const savedContact = await response.json();
+
+      // Create mention notifications if there are any mentions
+      const workspaceId = savedContact.workspaceId;
+      if (mentions.length > 0 && workspaceId) {
+        await createMentionNotifications(
+          mentions,
+          sessionUser?.name || sessionUser?.email || "Someone",
+          "contact",
+          savedContact.id,
+          `${data.firstName} ${data.lastName}`,
+          workspaceId,
+          `Mentioned you in contact: ${data.firstName} ${data.lastName}`
+        );
+      }
+
       toast.success(
         contact ? "Contact updated successfully" : "Contact created successfully"
       );
@@ -193,7 +213,7 @@ export function ContactForm({
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {contact ? "Edit Contact" : "Add New Contact"}
@@ -387,10 +407,12 @@ export function ContactForm({
                 <FormItem>
                   <FormLabel>Notes</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Add any additional notes about this contact..." 
-                      className="min-h-[100px]"
-                      {...field} 
+                    <MentionTextarea
+                      placeholder="Add any additional notes about this contact... Type @ to mention team members"
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      onMentionsChange={setMentions}
+                      teamMembers={teamMembers.filter(m => m.isActive)}
                     />
                   </FormControl>
                   <FormMessage />

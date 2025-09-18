@@ -97,13 +97,37 @@ export async function PUT(
           connect: participantIds?.map((participantId: string) => ({ id: participantId })) || [],
         },
       },
-      include: {
+      select: {
+        id: true,
+        type: true,
+        subject: true,
+        description: true,
+        date: true,
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
+        workspaceId: true,
+        dealId: true,
+        assignedToId: true,
         contacts: {
-          include: {
-            company: true,
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            company: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
-        deal: true,
+        deal: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         user: {
           select: {
             id: true,

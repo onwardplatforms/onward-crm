@@ -376,6 +376,7 @@ model NotificationPreference {
   user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   activityReminders   Boolean  @default(true)
   dealUpdates         Boolean  @default(true)
+  atMentions          Boolean  @default(true)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 }

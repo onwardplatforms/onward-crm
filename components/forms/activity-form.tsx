@@ -27,13 +27,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { MentionTextarea } from "@/components/ui/mention-textarea";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { toast } from "sonner";
 import { ACTIVITY_TYPES } from "@/lib/types";
 import { useCurrentUser } from "@/lib/hooks/use-current-user";
+import { createMentionNotifications } from "@/lib/notifications/mentions";
+import { useSession } from "@/components/providers/session-provider";
 
 const activitySchema = z.object({
   type: z.string().min(1, "Type is required"),
@@ -80,7 +82,9 @@ export function ActivityForm({
   const [contacts, setContacts] = useState<Array<{ id: string; firstName: string; lastName: string; company?: { name: string } }>>([]);
   const [deals, setDeals] = useState<Array<{ id: string; name: string }>>([]);
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name?: string; email: string; isActive?: boolean }>>([]);
+  const [mentions, setMentions] = useState<string[]>([]);
   const { user: currentUser } = useCurrentUser();
+  const { user: sessionUser } = useSession();
 
   const form = useForm<ActivityFormData>({
     resolver: zodResolver(activitySchema),
@@ -168,7 +172,29 @@ export function ActivityForm({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save activity");
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Activity save error:", errorData);
+        throw new Error(errorData.details || errorData.error || "Failed to save activity");
+      }
+
+      const savedActivity = await response.json();
+
+      // Create mention notifications if there are any mentions
+      const workspaceId = savedActivity.workspaceId;
+
+      if (mentions.length > 0) {
+        if (workspaceId) {
+          const mentionerName = sessionUser?.name || sessionUser?.email || "Someone";
+          await createMentionNotifications(
+            mentions,
+            mentionerName,
+            "activity",
+            savedActivity.id,
+            data.subject,
+            workspaceId,
+            `Mentioned you in activity: ${data.subject}`
+          );
+        }
       }
 
       toast.success(
@@ -192,7 +218,7 @@ export function ActivityForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {activity ? "Edit Activity" : "Log Activity"}
@@ -380,10 +406,12 @@ export function ActivityForm({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Add detailed notes about this activity..." 
-                      className="min-h-[100px]"
-                      {...field} 
+                    <MentionTextarea
+                      placeholder="Add detailed notes about this activity... Type @ to mention team members"
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      onMentionsChange={setMentions}
+                      teamMembers={teamMembers.filter(m => m.isActive)}
                     />
                   </FormControl>
                   <FormMessage />

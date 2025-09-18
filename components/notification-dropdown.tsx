@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, Check, Calendar, Briefcase, UserPlus, UserCheck, X } from "lucide-react";
+import { Bell, Check, Calendar, Briefcase, UserPlus, UserCheck, X, AtSign } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -166,6 +166,8 @@ export function NotificationDropdown() {
         return <UserPlus className="h-4 w-4" />;
       case "invite_accepted":
         return <UserCheck className="h-4 w-4" />;
+      case "at_mention":
+        return <AtSign className="h-4 w-4" />;
       default:
         return <Bell className="h-4 w-4" />;
     }

@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { MentionTextarea } from "@/components/ui/mention-textarea";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
@@ -37,6 +37,8 @@ import { CompanyForm } from "./company-form";
 import { ContactForm } from "./contact-form";
 import { currencySchema, formatCurrencyInput } from "@/lib/currency";
 import { useCurrentUser } from "@/lib/hooks/use-current-user";
+import { createMentionNotifications } from "@/lib/notifications/mentions";
+import { useSession } from "@/components/providers/session-provider";
 
 const dealSchema = z.object({
   name: z.string().min(1, "Opportunity name is required"),
@@ -85,7 +87,9 @@ export function DealForm({
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name?: string; email: string; isActive?: boolean }>>([]);
   const [companyFormOpen, setCompanyFormOpen] = useState(false);
   const [contactFormOpen, setContactFormOpen] = useState(false);
+  const [mentions, setMentions] = useState<string[]>([]);
   const { user: currentUser } = useCurrentUser();
+  const { user: sessionUser } = useSession();
 
   const form = useForm<DealFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -207,6 +211,22 @@ export function DealForm({
         throw new Error("Failed to save opportunity");
       }
 
+      const savedDeal = await response.json();
+
+      // Create mention notifications if there are any mentions
+      const workspaceId = savedDeal.workspaceId;
+      if (mentions.length > 0 && workspaceId) {
+        await createMentionNotifications(
+          mentions,
+          sessionUser?.name || sessionUser?.email || "Someone",
+          "deal",
+          savedDeal.id,
+          data.name,
+          workspaceId,
+          `Mentioned you in opportunity: ${data.name}`
+        );
+      }
+
       toast.success(
         deal ? "Opportunity updated successfully" : "Opportunity created successfully"
       );
@@ -278,7 +298,7 @@ export function DealForm({
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {deal ? "Edit Opportunity" : "Add New Opportunity"}
@@ -561,10 +581,12 @@ export function DealForm({
                 <FormItem>
                   <FormLabel>Notes</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Add any additional notes about this opportunity..." 
-                      className="min-h-[100px]"
-                      {...field} 
+                    <MentionTextarea
+                      placeholder="Add any additional notes about this opportunity... Type @ to mention team members"
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      onMentionsChange={setMentions}
+                      teamMembers={teamMembers.filter(m => m.isActive)}
                     />
                   </FormControl>
                   <FormMessage />

@@ -27,11 +27,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { MentionTextarea } from "@/components/ui/mention-textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { INDUSTRIES, COMPANY_SIZES } from "@/lib/types";
 import { useCurrentUser } from "@/lib/hooks/use-current-user";
+import { createMentionNotifications } from "@/lib/notifications/mentions";
+import { useSession } from "@/components/providers/session-provider";
 
 const companySchema = z.object({
   name: z.string().min(1, "Company name is required"),
@@ -71,7 +73,9 @@ export function CompanyForm({
 }: CompanyFormProps) {
   const [loading, setLoading] = useState(false);
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name?: string; email: string; isActive?: boolean }>>([]);
+  const [mentions, setMentions] = useState<string[]>([]);
   const { user: currentUser } = useCurrentUser();
+  const { user: sessionUser } = useSession();
 
   const form = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
@@ -148,6 +152,22 @@ export function CompanyForm({
         throw new Error(errorData.error || "Failed to save company");
       }
 
+      const savedCompany = await response.json();
+
+      // Create mention notifications if there are any mentions
+      const workspaceId = savedCompany.workspaceId;
+      if (mentions.length > 0 && workspaceId) {
+        await createMentionNotifications(
+          mentions,
+          sessionUser?.name || sessionUser?.email || "Someone",
+          "company",
+          savedCompany.id,
+          data.name,
+          workspaceId,
+          `Mentioned you in company: ${data.name}`
+        );
+      }
+
       toast.success(
         company ? "Company updated successfully" : "Company created successfully"
       );
@@ -165,7 +185,7 @@ export function CompanyForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {company ? "Edit Company" : "Add New Company"}
@@ -325,10 +345,12 @@ export function CompanyForm({
                 <FormItem>
                   <FormLabel>Notes</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Add any additional notes about this company..." 
-                      className="min-h-[100px]"
-                      {...field} 
+                    <MentionTextarea
+                      placeholder="Add any additional notes about this company... Type @ to mention team members"
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      onMentionsChange={setMentions}
+                      teamMembers={teamMembers.filter(m => m.isActive)}
                     />
                   </FormControl>
                   <FormMessage />

@@ -252,6 +252,7 @@ export default function ActivitiesPage() {
                     <TableHead className="hidden md:table-cell">Date</TableHead>
                     <TableHead className="hidden lg:table-cell">Type</TableHead>
                     <TableHead className="hidden xl:table-cell">Opportunity</TableHead>
+                    <TableHead className="hidden xl:table-cell">Team Involved</TableHead>
                     <TableHead className="hidden 2xl:table-cell">Owner</TableHead>
                     <TableHead className="hidden 2xl:table-cell">Description</TableHead>
                     <TableHead className="w-[70px]">Actions</TableHead>
@@ -260,7 +261,7 @@ export default function ActivitiesPage() {
               <TableBody>
                 {filteredActivities.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center text-muted-foreground">
                       {searchTerm || typeFilter !== "all" || dateFilter !== "all"
                         ? "No activities found matching your filters."
                         : "No activities logged yet. Start by logging your first activity."}
@@ -311,6 +312,30 @@ export default function ActivitiesPage() {
                         <div className="max-w-[150px]">
                           {activity.deal ? (
                             <span className="text-sm truncate block" title={activity.deal.name}>{activity.deal.name}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden xl:table-cell">
+                        <div className="max-w-[150px]">
+                          {activity.participants && activity.participants.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {activity.participants.slice(0, 2).map((participant) => (
+                                <span
+                                  key={participant.id}
+                                  className="inline-block px-2 py-0.5 text-xs rounded-full bg-muted truncate max-w-[100px]"
+                                  title={participant.name || participant.email}
+                                >
+                                  {participant.name || participant.email}
+                                </span>
+                              ))}
+                              {activity.participants.length > 2 && (
+                                <span className="text-xs text-muted-foreground">
+                                  +{activity.participants.length - 2}
+                                </span>
+                              )}
+                            </div>
                           ) : (
                             <span className="text-muted-foreground text-sm">-</span>
                           )}

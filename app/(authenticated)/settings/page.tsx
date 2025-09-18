@@ -34,6 +34,7 @@ export default function SettingsPage() {
   const [notificationPreferences, setNotificationPreferences] = useState({
     activityReminders: true,
     dealUpdates: true,
+    atMentions: true,
   });
   const [loading, setLoading] = useState(false);
   const [savingPreferences, setSavingPreferences] = useState(false);
@@ -84,6 +85,7 @@ export default function SettingsPage() {
         setNotificationPreferences({
           activityReminders: prefs.activityReminders,
           dealUpdates: prefs.dealUpdates,
+          atMentions: prefs.atMentions !== undefined ? prefs.atMentions : true,
         });
       }
     } catch (error) {
@@ -358,6 +360,24 @@ export default function SettingsPage() {
                   checked={notificationPreferences.dealUpdates}
                   onCheckedChange={(checked) => 
                     updateNotificationPreference("dealUpdates", checked)
+                  }
+                  disabled={savingPreferences}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label htmlFor="at-mentions" className="font-medium">
+                    @Mentions
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Get notified when someone mentions you in a note
+                  </p>
+                </div>
+                <Switch
+                  id="at-mentions"
+                  checked={notificationPreferences.atMentions}
+                  onCheckedChange={(checked) =>
+                    updateNotificationPreference("atMentions", checked)
                   }
                   disabled={savingPreferences}
                 />

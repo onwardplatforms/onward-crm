@@ -119,13 +119,37 @@ export async function POST(request: NextRequest) {
     
     const activity = await prisma.activity.create({
       data: activityData,
-      include: {
+      select: {
+        id: true,
+        type: true,
+        subject: true,
+        description: true,
+        date: true,
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
+        workspaceId: true,
+        dealId: true,
+        assignedToId: true,
         contacts: {
-          include: {
-            company: true,
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            company: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
-        deal: true,
+        deal: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -140,14 +164,22 @@ export async function POST(request: NextRequest) {
             email: true,
           },
         },
+        participants: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
     
     return NextResponse.json(activity, { status: 201 });
   } catch (error) {
     console.error("Error creating activity:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to create activity" },
+      { error: "Failed to create activity", details: errorMessage },
       { status: 500 }
     );
   }
