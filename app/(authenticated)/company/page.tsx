@@ -31,6 +31,7 @@ interface Company {
   size?: string;
   website?: string;
   linkedin?: string;
+  location?: string;
   notes?: string;
   assignedTo?: { id: string; name: string; email: string };
   deals?: Array<{ id: string }>;
@@ -209,8 +210,8 @@ export default function CompaniesPage() {
                         </div>
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">
-                        <div className="max-w-[150px] truncate">
-                          <span className="text-muted-foreground">-</span>
+                        <div className="max-w-[150px] truncate" title={company.location || undefined}>
+                          {company.location || <span className="text-muted-foreground">-</span>}
                         </div>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
@@ -272,6 +273,7 @@ export default function CompaniesPage() {
           linkedinUrl: selectedCompany.linkedin,
           industry: selectedCompany.industry,
           size: selectedCompany.size,
+          location: selectedCompany.location,
           assignedToId: selectedCompany.assignedTo?.id,
           notes: selectedCompany.notes
         } : undefined}
