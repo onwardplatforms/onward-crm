@@ -828,7 +828,7 @@ export default function DealsPage() {
                       <TableHead>Contact</TableHead>
                       <TableHead>Close Date</TableHead>
                       <TableHead>Probability</TableHead>
-                      <TableHead>Assigned To</TableHead>
+                      <TableHead>Owner</TableHead>
                       <TableHead className="w-[70px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>

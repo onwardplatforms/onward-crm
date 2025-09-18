@@ -147,7 +147,7 @@ export default function CompaniesPage() {
                     <TableHead className="hidden lg:table-cell">Size</TableHead>
                     <TableHead className="hidden lg:table-cell">Location</TableHead>
                     <TableHead className="hidden sm:table-cell">Contacts</TableHead>
-                    <TableHead className="hidden md:table-cell">Assigned To</TableHead>
+                    <TableHead className="hidden md:table-cell">Owner</TableHead>
                     <TableHead className="w-[70px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>

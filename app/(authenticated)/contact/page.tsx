@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Plus, Search, MoreHorizontal, Pencil, Trash, ArrowUpRight } from "lucide-react";
-import { format, differenceInDays } from "date-fns";
+import { format } from "date-fns";
 import Link from "next/link";
 import { ContactForm } from "@/components/forms/contact-form";
 import { toast } from "sonner";
@@ -190,22 +190,6 @@ export default function ContactsPage() {
     ).length;
   };
 
-  // Helper function to format days difference
-  const formatDaysDifference = (date: Date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const targetDate = new Date(date);
-    targetDate.setHours(0, 0, 0, 0);
-
-    const days = differenceInDays(targetDate, today);
-
-    if (days === 0) return "Today";
-    if (days === 1) return "Tomorrow";
-    if (days === -1) return "Yesterday";
-    if (days > 0) return `${days}d`;
-    return `${Math.abs(days)}d ago`;
-  };
-
   return (
     <div className="h-screen flex flex-col">
       <div className="flex-shrink-0 p-4 sm:p-6 pb-0">
@@ -253,12 +237,13 @@ export default function ContactsPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-[200px] min-w-[200px]">Contact</TableHead>
-                        <TableHead className="hidden sm:table-cell w-[100px] min-w-[100px] text-center">Last Contact</TableHead>
+                        <TableHead className="hidden sm:table-cell w-[150px] min-w-[150px]">Title</TableHead>
+                        <TableHead className="hidden md:table-cell w-[100px] min-w-[100px] text-center">Last Contact</TableHead>
                         <TableHead className="hidden md:table-cell w-[100px] min-w-[100px] text-center">Next Contact</TableHead>
                         <TableHead className="hidden lg:table-cell w-[100px] min-w-[100px] text-center">Touchpoints</TableHead>
                         <TableHead className="hidden xl:table-cell w-[200px] min-w-[200px]">Email</TableHead>
                         <TableHead className="hidden 2xl:table-cell w-[140px] min-w-[140px]">Phone</TableHead>
-                        <TableHead className="hidden 2xl:table-cell w-[150px] min-w-[150px]">Title</TableHead>
+                        <TableHead className="hidden 2xl:table-cell w-[150px] min-w-[150px]">Owner</TableHead>
                         <TableHead className="w-[50px] min-w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -288,31 +273,29 @@ export default function ContactsPage() {
                                   {contact.company.name}
                                 </p>
                               )}
-                              {/* Mobile-only: Show total contacts */}
-                              <div className="sm:hidden text-xs text-muted-foreground">
-                                {getTotalContactCount(contact.id)} activities
-                              </div>
                             </div>
                           </TableCell>
 
-                          {/* Last Contact - visible from 640px */}
-                          <TableCell className="hidden sm:table-cell w-[100px] min-w-[100px] text-center">
+                          {/* Title - visible from 640px */}
+                          <TableCell className="hidden sm:table-cell w-[150px] min-w-[150px]">
+                            <span className="text-xs sm:text-sm truncate block max-w-[140px]">
+                              {contact.title || <span className="text-muted-foreground">-</span>}
+                            </span>
+                          </TableCell>
+
+                          {/* Last Contact - visible from 768px */}
+                          <TableCell className="hidden md:table-cell w-[100px] min-w-[100px] text-center">
                             {(() => {
                               const lastActivity = getLastContactedDate(contact.id);
                               if (!lastActivity) {
                                 return <span className="text-muted-foreground text-xs sm:text-sm">-</span>;
                               }
-                              const daysText = formatDaysDifference(new Date(lastActivity.date));
-                              const isOld = differenceInDays(new Date(), new Date(lastActivity.date)) > 30;
                               return (
                                 <Link
                                   href={`/activity?contactId=${contact.id}`}
-                                  className="inline-flex items-center gap-1 text-xs sm:text-sm hover:text-foreground transition-colors"
-                                  title={format(new Date(lastActivity.date), "MMM d, yyyy")}
+                                  className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
                                 >
-                                  <span className={isOld ? "text-orange-500 font-medium" : "text-muted-foreground"}>
-                                    {daysText}
-                                  </span>
+                                  {format(new Date(lastActivity.date), "MMM d, yyyy")}
                                 </Link>
                               );
                             })()}
@@ -325,17 +308,12 @@ export default function ContactsPage() {
                               if (!nextActivity) {
                                 return <span className="text-muted-foreground text-xs sm:text-sm">-</span>;
                               }
-                              const daysText = formatDaysDifference(new Date(nextActivity.date));
-                              const isUrgent = differenceInDays(new Date(nextActivity.date), new Date()) <= 1;
                               return (
                                 <Link
                                   href={`/activity?contactId=${contact.id}`}
-                                  className="inline-flex items-center gap-1 text-xs sm:text-sm hover:text-foreground transition-colors"
-                                  title={format(new Date(nextActivity.date), "MMM d, yyyy")}
+                                  className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
                                 >
-                                  <span className={isUrgent ? "text-red-500 font-medium" : "text-muted-foreground"}>
-                                    {daysText}
-                                  </span>
+                                  {format(new Date(nextActivity.date), "MMM d, yyyy")}
                                 </Link>
                               );
                             })()}
@@ -377,10 +355,16 @@ export default function ContactsPage() {
                             )}
                           </TableCell>
 
-                          {/* Title - visible from 1536px */}
+                          {/* Owner - visible from 1536px */}
                           <TableCell className="hidden 2xl:table-cell w-[150px] min-w-[150px]">
-                            <div className="text-xs sm:text-sm truncate max-w-[140px]">
-                              {contact.title || <span className="text-muted-foreground">-</span>}
+                            <div className="max-w-[140px]">
+                              {contact.assignedTo ? (
+                                <span className="text-xs sm:text-sm truncate block">
+                                  {contact.assignedTo.name || contact.assignedTo.email}
+                                </span>
+                              ) : (
+                                <span className="text-xs sm:text-sm text-muted-foreground">Unassigned</span>
+                              )}
                             </div>
                           </TableCell>
 

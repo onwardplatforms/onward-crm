@@ -252,7 +252,7 @@ export default function ActivitiesPage() {
                     <TableHead className="hidden md:table-cell">Date</TableHead>
                     <TableHead className="hidden lg:table-cell">Type</TableHead>
                     <TableHead className="hidden xl:table-cell">Opportunity</TableHead>
-                    <TableHead className="hidden 2xl:table-cell">Assigned To</TableHead>
+                    <TableHead className="hidden 2xl:table-cell">Owner</TableHead>
                     <TableHead className="hidden 2xl:table-cell">Description</TableHead>
                     <TableHead className="w-[70px]">Actions</TableHead>
                   </TableRow>

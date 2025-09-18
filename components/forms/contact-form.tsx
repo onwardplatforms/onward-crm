@@ -357,7 +357,7 @@ export function ContactForm({
               name="assignedToId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Assigned To</FormLabel>
+                  <FormLabel>Owner</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
