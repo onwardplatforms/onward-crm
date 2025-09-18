@@ -19,6 +19,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, Search, ArrowUpRight, MoreHorizontal, Pencil, Trash } from "lucide-react";
 import { CompanyForm } from "@/components/forms/company-form";
 import { toast } from "sonner";
@@ -40,12 +47,20 @@ interface Company {
   _count?: { contacts: number; deals: number };
 }
 
+interface TeamMember {
+  id: string;
+  name: string | null;
+  email: string;
+}
+
 export default function CompaniesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [ownerFilter, setOwnerFilter] = useState<string>("all");
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
 
   const fetchCompanies = async () => {
     try {
@@ -61,8 +76,31 @@ export default function CompaniesPage() {
     }
   };
 
+  const fetchTeamMembers = async () => {
+    try {
+      const workspaceResponse = await fetch("/api/workspaces");
+      if (workspaceResponse.ok) {
+        const workspaceData = await workspaceResponse.json();
+        const currentWorkspace = workspaceData.workspaces?.find(
+          (w: { id: string }) => w.id === workspaceData.currentWorkspaceId
+        );
+
+        if (currentWorkspace) {
+          const response = await fetch(`/api/workspaces/${currentWorkspace.id}/members`);
+          if (response.ok) {
+            const data = await response.json();
+            setTeamMembers(data.members || []);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+    }
+  };
+
   useEffect(() => {
     fetchCompanies();
+    fetchTeamMembers();
   }, []);
 
   const handleEdit = (company: Company) => {
@@ -98,10 +136,17 @@ export default function CompaniesPage() {
   };
 
   const filteredCompanies = companies.filter(
-    (company) =>
-      company.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company.website?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company.industry?.toLowerCase().includes(searchTerm.toLowerCase())
+    (company) => {
+      const matchesSearch = company.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.website?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.industry?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesOwner = ownerFilter === "all" ||
+        (ownerFilter === "unassigned" ? !company.assignedTo :
+        company.assignedTo?.id === ownerFilter);
+
+      return matchesSearch && matchesOwner;
+    }
   );
 
   return (
@@ -125,14 +170,30 @@ export default function CompaniesPage() {
       <div className="flex-1 overflow-hidden px-4 sm:px-6 pb-4 sm:pb-6">
         <Card className="h-full flex flex-col">
           <CardHeader className="flex-shrink-0">
-            <div className="flex items-center space-x-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search companies..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
-              />
+            <div className="flex items-center gap-4">
+              <div className="flex items-center space-x-2 flex-1">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search companies..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="max-w-sm"
+                />
+              </div>
+              <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by owner" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Owners</SelectItem>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  {teamMembers.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.name || member.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardHeader>
           <CardContent className="flex-1 overflow-hidden">

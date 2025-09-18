@@ -50,6 +50,12 @@ interface Activity {
   participants?: Array<{ id: string; name?: string; email: string }>;
 }
 
+interface TeamMember {
+  id: string;
+  name: string | null;
+  email: string;
+}
+
 const DATE_FILTERS = [
   { value: "future", label: "Future" },
   { value: "today", label: "Today" },
@@ -68,6 +74,8 @@ export default function ActivitiesPage() {
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
+  const [ownerFilter, setOwnerFilter] = useState<string>("all");
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
 
   const fetchActivities = async () => {
     try {
@@ -83,8 +91,31 @@ export default function ActivitiesPage() {
     }
   };
 
+  const fetchTeamMembers = async () => {
+    try {
+      const workspaceResponse = await fetch("/api/workspaces");
+      if (workspaceResponse.ok) {
+        const workspaceData = await workspaceResponse.json();
+        const currentWorkspace = workspaceData.workspaces?.find(
+          (w: { id: string }) => w.id === workspaceData.currentWorkspaceId
+        );
+
+        if (currentWorkspace) {
+          const response = await fetch(`/api/workspaces/${currentWorkspace.id}/members`);
+          if (response.ok) {
+            const data = await response.json();
+            setTeamMembers(data.members || []);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+    }
+  };
+
   useEffect(() => {
     fetchActivities();
+    fetchTeamMembers();
   }, []);
 
   const handleEdit = (activity: Activity) => {
@@ -161,8 +192,11 @@ export default function ActivitiesPage() {
       
       const matchesType = typeFilter === "all" || activity.type === typeFilter;
       const matchesDate = filterByDate(activity);
-      
-      return matchesSearch && matchesType && matchesDate;
+      const matchesOwner = ownerFilter === "all" ||
+        (ownerFilter === "unassigned" ? !activity.assignedTo :
+        activity.assignedTo?.id === ownerFilter);
+
+      return matchesSearch && matchesType && matchesDate && matchesOwner;
     })
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -212,7 +246,8 @@ export default function ActivitiesPage() {
                 className="max-w-sm"
               />
             </div>
-            <div className="hidden sm:flex items-center gap-4">
+            {/* Date filter - visible from sm and up */}
+            <div className="hidden sm:block">
               <Select value={dateFilter} onValueChange={setDateFilter}>
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Date range" />
@@ -225,6 +260,26 @@ export default function ActivitiesPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            {/* Owner filter - visible from md and up */}
+            <div className="hidden md:block">
+              <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by owner" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Owners</SelectItem>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  {teamMembers.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.name || member.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Type filter - visible from lg and up */}
+            <div className="hidden lg:block">
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Filter by type" />

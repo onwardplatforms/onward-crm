@@ -18,6 +18,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, Search, MoreHorizontal, Pencil, Trash, ArrowUpRight } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
@@ -49,6 +56,12 @@ interface Activity {
   contacts?: Array<{ id: string }>;
 }
 
+interface TeamMember {
+  id: string;
+  name: string | null;
+  email: string;
+}
+
 export default function ContactsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -57,6 +70,8 @@ export default function ContactsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [workspaceId, setWorkspaceId] = useState<string>("");
+  const [ownerFilter, setOwnerFilter] = useState<string>("all");
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
 
   const fetchContacts = async () => {
     try {
@@ -81,8 +96,31 @@ export default function ContactsPage() {
     }
   };
 
+  const fetchTeamMembers = async () => {
+    try {
+      const workspaceResponse = await fetch("/api/workspaces");
+      if (workspaceResponse.ok) {
+        const workspaceData = await workspaceResponse.json();
+        const currentWorkspace = workspaceData.workspaces?.find(
+          (w: { id: string }) => w.id === workspaceData.currentWorkspaceId
+        );
+
+        if (currentWorkspace) {
+          const response = await fetch(`/api/workspaces/${currentWorkspace.id}/members`);
+          if (response.ok) {
+            const data = await response.json();
+            setTeamMembers(data.members || []);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+    }
+  };
+
   useEffect(() => {
     fetchContacts();
+    fetchTeamMembers();
     // Fetch current workspace
     fetch("/api/workspaces")
       .then(res => res.json())
@@ -127,11 +165,18 @@ export default function ContactsPage() {
   };
 
   const filteredContacts = contacts.filter(
-    (contact) =>
-      contact.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.company?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    (contact) => {
+      const matchesSearch = contact.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        contact.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        contact.company?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesOwner = ownerFilter === "all" ||
+        (ownerFilter === "unassigned" ? !contact.assignedTo :
+        contact.assignedTo?.id === ownerFilter);
+
+      return matchesSearch && matchesOwner;
+    }
   );
 
   // Helper function to get last contacted date for a contact (past activities only)
@@ -211,14 +256,30 @@ export default function ContactsPage() {
       <div className="flex-1 overflow-hidden px-4 sm:px-6 pb-4 sm:pb-6">
         <Card className="h-full flex flex-col">
           <CardHeader className="flex-shrink-0 px-4 sm:px-6">
-            <div className="flex items-center space-x-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search contacts..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
-              />
+            <div className="flex items-center gap-4">
+              <div className="flex items-center space-x-2 flex-1">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search contacts..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="max-w-sm"
+                />
+              </div>
+              <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by owner" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Owners</SelectItem>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  {teamMembers.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.name || member.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardHeader>
           <CardContent className="flex-1 overflow-hidden px-4 sm:px-6">
