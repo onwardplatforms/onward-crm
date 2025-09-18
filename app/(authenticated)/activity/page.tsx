@@ -276,10 +276,10 @@ export default function ActivitiesPage() {
                         <div className="max-w-[200px]">
                           <Link
                             href={`/activity/${activity.id}`}
-                            className="font-medium truncate text-foreground hover:text-muted-foreground transition-colors inline-flex items-center gap-1"
+                            className="font-medium text-foreground hover:text-muted-foreground transition-colors flex items-center gap-1"
                           >
-                            {activity.subject}
-                            <ArrowUpRight className="h-3 w-3" />
+                            <span className="truncate">{activity.subject}</span>
+                            <ArrowUpRight className="h-3 w-3 flex-shrink-0" />
                           </Link>
                         </div>
                       </TableCell>
