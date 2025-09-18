@@ -260,17 +260,6 @@ export default function ContactsPage() {
                                   {contact.firstName} {contact.lastName}
                                   <ArrowUpRight className="h-3 w-3" />
                                 </Link>
-                                {contact.linkedinUrl && (
-                                  <a
-                                    href={contact.linkedinUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 mt-0.5"
-                                    title="View LinkedIn Profile"
-                                  >
-                                    <ArrowUpRight className="h-3 w-3" />
-                                  </a>
-                                )}
                               </div>
                               {contact.company && (
                                 <p className="text-xs sm:text-sm text-muted-foreground truncate max-w-[180px]">
