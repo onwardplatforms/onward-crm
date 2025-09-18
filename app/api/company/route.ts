@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: {
-        createdAt: "desc",
+        name: "asc",
       },
     });
     return NextResponse.json(companies);

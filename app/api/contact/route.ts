@@ -27,9 +27,10 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [
+        { firstName: "asc" },
+        { lastName: "asc" },
+      ],
     });
     return NextResponse.json(contacts);
   } catch (error) {
