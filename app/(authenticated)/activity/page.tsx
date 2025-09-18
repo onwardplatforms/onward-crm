@@ -46,6 +46,7 @@ interface Activity {
   contacts?: Array<{ id: string; firstName: string; lastName: string; company?: { name: string } }>;
   assignedTo?: { id: string; name: string; email: string };
   user?: { id: string; name: string };
+  participants?: Array<{ id: string; name?: string; email: string }>;
 }
 
 const DATE_FILTERS = [
