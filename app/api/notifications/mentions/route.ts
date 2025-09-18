@@ -43,6 +43,8 @@ export async function POST(request: Request) {
             // Link to the appropriate entity
             ...(contextType === "activity" && { activityId: contextId }),
             ...(contextType === "deal" && { dealId: contextId }),
+            ...(contextType === "contact" && { contactId: contextId }),
+            ...(contextType === "company" && { companyId: contextId }),
           },
         });
 

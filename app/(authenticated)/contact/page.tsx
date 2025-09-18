@@ -253,9 +253,13 @@ export default function ContactsPage() {
                           <TableCell className="w-[200px] min-w-[200px]">
                             <div className="space-y-1">
                               <div className="flex items-start gap-2">
-                                <p className="font-medium truncate max-w-[160px]">
+                                <Link
+                                  href={`/contact/${contact.id}`}
+                                  className="font-medium truncate max-w-[160px] text-foreground hover:text-muted-foreground transition-colors flex items-center gap-1"
+                                >
                                   {contact.firstName} {contact.lastName}
-                                </p>
+                                  <ArrowUpRight className="h-3 w-3" />
+                                </Link>
                                 {contact.linkedinUrl && (
                                   <a
                                     href={contact.linkedinUrl}

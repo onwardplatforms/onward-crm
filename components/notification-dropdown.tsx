@@ -21,8 +21,29 @@ interface Notification {
   message: string;
   read: boolean;
   createdAt: string;
-  activity?: { id: string; type: string; subject: string };
-  deal?: { id: string; name: string };
+  activity?: {
+    id: string;
+    type: string;
+    subject: string;
+    contacts?: Array<{ id: string }>;
+    deal?: { id: string };
+  };
+  deal?: {
+    id: string;
+    name: string;
+    company?: { id: string };
+    contact?: { id: string };
+  };
+  contact?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    company?: { id: string };
+  };
+  company?: {
+    id: string;
+    name: string;
+  };
   invite?: { id: string; token?: string; workspace: { name: string }; invitedBy: { name: string } };
 }
 
@@ -55,6 +76,7 @@ export function NotificationDropdown() {
 
   const markAsRead = async (notificationIds?: string[]) => {
     try {
+      console.log("Marking notifications as read:", notificationIds);
       const response = await fetch("/api/notifications", {
         method: "PUT",
         headers: {
@@ -63,6 +85,7 @@ export function NotificationDropdown() {
         body: JSON.stringify({ notificationIds }),
       });
 
+      console.log("Mark as read response status:", response.status);
       if (response.ok) {
         if (notificationIds) {
           setNotifications(prev =>
@@ -86,18 +109,41 @@ export function NotificationDropdown() {
     if (notification.type === "workspace_invite") {
       return;
     }
-    
+
+    // Mark as read immediately in UI for better UX
     if (!notification.read) {
-      markAsRead([notification.id]);
+      // Update UI immediately
+      setNotifications(prev =>
+        prev.map(n =>
+          n.id === notification.id ? { ...n, read: true } : n
+        )
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+
+      // Wait for the API call to complete before navigating
+      await markAsRead([notification.id]);
     }
-    
+
     setOpen(false);
-    
-    // Navigate to relevant page based on notification type
+
+    // Navigate to relevant page based on notification type and entity
     if (notification.type === "activity_reminder" && notification.activity) {
-      window.location.href = "/activities";
+      // Route to specific activity
+      window.location.href = `/activity/${notification.activity.id}`;
     } else if (notification.type === "deal_update" && notification.deal) {
-      window.location.href = "/deals";
+      // Route to specific opportunity
+      window.location.href = `/opportunity/${notification.deal.id}`;
+    } else if (notification.type === "at_mention") {
+      // Route based on what entity the mention is related to
+      if (notification.activity) {
+        window.location.href = `/activity/${notification.activity.id}`;
+      } else if (notification.deal) {
+        window.location.href = `/opportunity/${notification.deal.id}`;
+      } else if (notification.contact) {
+        window.location.href = `/contact/${notification.contact.id}`;
+      } else if (notification.company) {
+        window.location.href = `/company/${notification.company.id}`;
+      }
     }
   };
 

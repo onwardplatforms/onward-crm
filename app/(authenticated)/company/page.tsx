@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Search, ArrowUpRight, MoreHorizontal, Pencil, Trash } from "lucide-react";
 import { CompanyForm } from "@/components/forms/company-form";
 import { toast } from "sonner";
+import Link from "next/link";
 
 interface Company {
   id: string;
@@ -167,7 +168,13 @@ export default function CompaniesPage() {
                       <TableCell>
                         <div className="min-w-[150px] max-w-[250px]">
                           <div className="flex items-start gap-2">
-                            <span className="font-medium truncate">{company.name}</span>
+                            <Link
+                              href={`/company/${company.id}`}
+                              className="font-medium truncate text-foreground hover:text-muted-foreground transition-colors flex items-center gap-1"
+                            >
+                              {company.name}
+                              <ArrowUpRight className="h-3 w-3" />
+                            </Link>
                             {company.linkedin && (
                               <a
                                 href={company.linkedin}

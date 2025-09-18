@@ -38,6 +38,12 @@ export async function GET(request: NextRequest) {
             contact: true,
           },
         },
+        contact: {
+          include: {
+            company: true,
+          },
+        },
+        company: true,
         invite: {
           include: {
             workspace: true,
@@ -78,7 +84,10 @@ export async function PUT(request: NextRequest) {
   const userId = request.headers.get("x-user-id");
   const workspaceId = request.headers.get("x-workspace-id");
 
+  console.log("PUT /api/notifications - userId:", userId, "workspaceId:", workspaceId);
+
   if (!userId || !workspaceId) {
+    console.log("Missing userId or workspaceId");
     return NextResponse.json(
       { error: !userId ? "Unauthorized" : "Workspace not found" },
       { status: !userId ? 401 : 400 }
@@ -87,14 +96,15 @@ export async function PUT(request: NextRequest) {
 
   try {
     const { notificationIds } = await request.json();
+    console.log("Notification IDs to mark as read:", notificationIds);
 
     if (notificationIds && notificationIds.length > 0) {
       // Mark specific notifications as read
+      // For specific IDs, we only check userId to handle cross-workspace notifications like @mentions
       await prisma.notification.updateMany({
         where: {
           id: { in: notificationIds },
           userId,
-          workspaceId,
         },
         data: {
           read: true,

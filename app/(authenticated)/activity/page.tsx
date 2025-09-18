@@ -25,14 +25,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
+import {
   Plus, Search, Phone, Mail, Calendar, FileText,
-  MoreHorizontal, Pencil, Trash
+  MoreHorizontal, Pencil, Trash, ArrowUpRight
 } from "lucide-react";
 import { format, startOfDay, endOfDay, subDays, addDays, isAfter } from "date-fns";
 import { ACTIVITY_TYPES } from "@/lib/types";
 import { ActivityForm } from "@/components/forms/activity-form";
 import { toast } from "sonner";
+import Link from "next/link";
 
 interface Activity {
   id: string;
@@ -272,8 +273,14 @@ export default function ActivitiesPage() {
                   filteredActivities.map((activity) => (
                     <TableRow key={activity.id}>
                       <TableCell>
-                        <div className="max-w-[200px] font-medium truncate" title={activity.subject}>
-                          {activity.subject}
+                        <div className="max-w-[200px]">
+                          <Link
+                            href={`/activity/${activity.id}`}
+                            className="font-medium truncate text-foreground hover:text-muted-foreground transition-colors inline-flex items-center gap-1"
+                          >
+                            {activity.subject}
+                            <ArrowUpRight className="h-3 w-3" />
+                          </Link>
                         </div>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">

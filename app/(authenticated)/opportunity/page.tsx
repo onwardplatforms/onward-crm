@@ -27,15 +27,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Plus, Search, 
-  MoreHorizontal, Pencil, Trash, GripVertical 
+import {
+  Plus, Search,
+  MoreHorizontal, Pencil, Trash, GripVertical, ArrowUpRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DEAL_STAGES } from "@/lib/types";
 import { DealForm } from "@/components/forms/deal-form";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import Link from "next/link";
 import { formatCurrency, formatCompactCurrency } from "@/lib/currency";
 
 interface Deal {
@@ -502,9 +503,13 @@ export default function DealsPage() {
                             <div className="flex items-start gap-2">
                               <GripVertical className="h-4 w-4 mt-0.5 text-muted-foreground/50 group-hover:text-muted-foreground flex-shrink-0" />
                               <div className="space-y-1 flex-1">
-                                <p className="text-sm font-medium leading-none">
+                                <Link
+                                  href={`/opportunity/${deal.id}`}
+                                  className="text-sm font-medium leading-none text-foreground hover:text-muted-foreground transition-colors inline-flex items-center gap-1"
+                                >
                                   {deal.name}
-                                </p>
+                                  <ArrowUpRight className="h-3 w-3" />
+                                </Link>
                                 {deal.company && (
                                   <p className="text-xs text-muted-foreground">
                                     {deal.company.name}
@@ -712,9 +717,13 @@ export default function DealsPage() {
                                 <div className="flex items-start gap-2">
                                   <GripVertical className="h-4 w-4 mt-0.5 text-muted-foreground/50 group-hover:text-muted-foreground flex-shrink-0" />
                                   <div className="space-y-1 flex-1">
-                                    <p className="text-sm font-medium leading-none">
+                                    <Link
+                                      href={`/opportunity/${deal.id}`}
+                                      className="text-sm font-medium leading-none text-foreground hover:text-muted-foreground transition-colors inline-flex items-center gap-1"
+                                    >
                                       {deal.name}
-                                    </p>
+                                      <ArrowUpRight className="h-3 w-3" />
+                                    </Link>
                                     {deal.value && (
                                       <p className="text-sm font-semibold">
                                         {formatCurrency(deal.value)}
@@ -770,9 +779,13 @@ export default function DealsPage() {
                                 <div className="flex items-start gap-2">
                                   <GripVertical className="h-4 w-4 mt-0.5 text-muted-foreground/50 group-hover:text-muted-foreground flex-shrink-0" />
                                   <div className="space-y-1 flex-1">
-                                    <p className="text-sm font-medium leading-none line-through text-muted-foreground">
+                                    <Link
+                                      href={`/opportunity/${deal.id}`}
+                                      className="text-sm font-medium leading-none line-through text-muted-foreground hover:text-foreground/70 transition-colors inline-flex items-center gap-1"
+                                    >
                                       {deal.name}
-                                    </p>
+                                      <ArrowUpRight className="h-3 w-3" />
+                                    </Link>
                                     {deal.value && (
                                       <p className="text-sm text-muted-foreground line-through">
                                         {formatCurrency(deal.value)}
@@ -845,7 +858,13 @@ export default function DealsPage() {
                       filteredDeals.map((deal) => (
                         <TableRow key={deal.id} className="cursor-pointer" onDoubleClick={() => handleEdit(deal)}>
                           <TableCell className="font-medium">
-                            {deal.name}
+                            <Link
+                              href={`/opportunity/${deal.id}`}
+                              className="text-foreground hover:text-muted-foreground transition-colors inline-flex items-center gap-1"
+                            >
+                              {deal.name}
+                              <ArrowUpRight className="h-3 w-3" />
+                            </Link>
                           </TableCell>
                           <TableCell>
                             {deal.value ? (
