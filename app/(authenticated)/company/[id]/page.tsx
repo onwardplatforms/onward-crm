@@ -233,7 +233,10 @@ export default function CompanyDetailPage({ params }: PageProps) {
               </div>
             </CardContent>
           </Card>
+        </div>
 
+        {/* Right column - Related */}
+        <div className="space-y-6">
           {/* Related Contacts */}
           {company.contacts && company.contacts.length > 0 && (
             <Card>
@@ -305,10 +308,6 @@ export default function CompanyDetailPage({ params }: PageProps) {
               </CardContent>
             </Card>
           )}
-        </div>
-
-        {/* Right column - Notes */}
-        <div>
           {company.notes && (
             <Card className="h-fit">
               <CardHeader>
