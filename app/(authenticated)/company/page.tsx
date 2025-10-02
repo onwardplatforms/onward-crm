@@ -26,10 +26,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search, ArrowUpRight, MoreHorizontal, Pencil, Trash } from "lucide-react";
+import {
+  Plus,
+  Search,
+  ArrowUpRight,
+  MoreHorizontal,
+  Pencil,
+  Trash,
+} from "lucide-react";
 import { CompanyForm } from "@/components/forms/company-form";
 import { toast } from "sonner";
 import Link from "next/link";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Company {
   id: string;
@@ -43,8 +56,8 @@ interface Company {
   notes?: string;
   assignedTo?: { id: string; name: string; email: string };
   deals?: Array<{ id: string }>;
-  contacts?: Array<{ id: string }>;
-  _count?: { contacts: number; deals: number };
+  contacts?: Array<{ id: string; firstName: string; lastName: string }>;
+  _count?: { deals: number };
 }
 
 interface TeamMember {
@@ -86,7 +99,9 @@ export default function CompaniesPage() {
         );
 
         if (currentWorkspace) {
-          const response = await fetch(`/api/workspaces/${currentWorkspace.id}/members`);
+          const response = await fetch(
+            `/api/workspaces/${currentWorkspace.id}/members`
+          );
           if (response.ok) {
             const data = await response.json();
             setTeamMembers(data.members || []);
@@ -110,14 +125,14 @@ export default function CompaniesPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this company?")) return;
-    
+
     try {
       const response = await fetch(`/api/company/${id}`, {
         method: "DELETE",
       });
-      
+
       if (!response.ok) throw new Error("Failed to delete company");
-      
+
       toast.success("Company deleted successfully");
       fetchCompanies();
     } catch (error) {
@@ -135,31 +150,38 @@ export default function CompaniesPage() {
     fetchCompanies();
   };
 
-  const filteredCompanies = companies.filter(
-    (company) => {
-      const matchesSearch = company.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        company.website?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        company.industry?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredCompanies = companies.filter((company) => {
+    const matchesSearch =
+      company.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.website?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.industry?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesOwner = ownerFilter === "all" ||
-        (ownerFilter === "unassigned" ? !company.assignedTo :
-        company.assignedTo?.id === ownerFilter);
+    const matchesOwner =
+      ownerFilter === "all" ||
+      (ownerFilter === "unassigned"
+        ? !company.assignedTo
+        : company.assignedTo?.id === ownerFilter);
 
-      return matchesSearch && matchesOwner;
-    }
-  );
+    return matchesSearch && matchesOwner;
+  });
 
   return (
     <div className="flex flex-col h-full max-h-screen">
       <div className="flex-shrink-0 p-4 sm:p-6 pb-0">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Companies</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Companies
+            </h2>
             <p className="text-sm sm:text-base text-muted-foreground">
               Manage companies and their details
             </p>
           </div>
-          <Button onClick={() => setFormOpen(true)} size="sm" className="sm:size-default">
+          <Button
+            onClick={() => setFormOpen(true)}
+            size="sm"
+            className="sm:size-default"
+          >
             <Plus className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Add Company</span>
             <span className="sm:hidden">Add</span>
@@ -202,128 +224,185 @@ export default function CompaniesPage() {
             ) : (
               <div className="overflow-auto h-full">
                 <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead className="hidden sm:table-cell">Website</TableHead>
-                    <TableHead className="hidden md:table-cell">Industry</TableHead>
-                    <TableHead className="hidden lg:table-cell">Size</TableHead>
-                    <TableHead className="hidden lg:table-cell">Location</TableHead>
-                    <TableHead className="hidden sm:table-cell">Contacts</TableHead>
-                    <TableHead className="hidden md:table-cell">Owner</TableHead>
-                    <TableHead className="w-[70px]">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-              <TableBody>
-                {filteredCompanies.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground">
-                      {searchTerm
-                        ? "No companies found matching your search."
-                        : "No companies found. Add your first company to get started."}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredCompanies.map((company) => (
-                    <TableRow key={company.id}>
-                      <TableCell>
-                        <div className="min-w-[150px] max-w-[250px]">
-                          <div className="flex items-start gap-2">
-                            <Link
-                              href={`/company/${company.id}`}
-                              className="font-medium truncate text-foreground hover:text-muted-foreground transition-colors flex items-center gap-1"
-                            >
-                              {company.name}
-                              <ArrowUpRight className="h-3 w-3" />
-                            </Link>
-                            {company.linkedin && (
-                              <a
-                                href={company.linkedin}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 mt-0.5"
-                                title="View LinkedIn Company Page"
-                              >
-                                <ArrowUpRight className="h-3 w-3" />
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        <div className="max-w-[200px]">
-                          {company.website ? (
-                            <a
-                              href={company.website}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                              <span className="truncate">{company.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}</span>
-                              <ArrowUpRight className="h-3 w-3 flex-shrink-0" />
-                            </a>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        <div className="max-w-[150px] truncate" title={company.industry || undefined}>
-                          {company.industry || <span className="text-muted-foreground">-</span>}
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        <div className="max-w-[100px] truncate">
-                          {company.size || <span className="text-muted-foreground">-</span>}
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        <div className="max-w-[150px] truncate" title={company.location || undefined}>
-                          {company.location || <span className="text-muted-foreground">-</span>}
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        <Badge variant="secondary">
-                          {company._count?.contacts || 0}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        <div className="max-w-[150px]">
-                          {company.assignedTo ? (
-                            <span className="text-sm truncate block" title={company.assignedTo.name || company.assignedTo.email}>
-                              {company.assignedTo.name || company.assignedTo.email}
-                            </span>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">Unassigned</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(company)}>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(company.id)}
-                              className="text-red-600"
-                            >
-                              <Trash className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead className="hidden sm:table-cell">
+                        Website
+                      </TableHead>
+                      <TableHead className="hidden md:table-cell">
+                        Industry
+                      </TableHead>
+                      <TableHead className="hidden lg:table-cell">
+                        Size
+                      </TableHead>
+                      <TableHead className="hidden lg:table-cell">
+                        Location
+                      </TableHead>
+                      <TableHead className="hidden sm:table-cell">
+                        Contacts
+                      </TableHead>
+                      <TableHead className="hidden md:table-cell">
+                        Owner
+                      </TableHead>
+                      <TableHead className="w-[70px]">Actions</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCompanies.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={8}
+                          className="text-center text-muted-foreground"
+                        >
+                          {searchTerm
+                            ? "No companies found matching your search."
+                            : "No companies found. Add your first company to get started."}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredCompanies.map((company) => (
+                        <TableRow key={company.id}>
+                          <TableCell>
+                            <div className="min-w-[150px] max-w-[250px]">
+                              <div className="flex items-start gap-2">
+                                <Link
+                                  href={`/company/${company.id}`}
+                                  className="font-medium truncate text-foreground hover:text-muted-foreground transition-colors flex items-center gap-1"
+                                >
+                                  {company.name}
+                                  <ArrowUpRight className="h-3 w-3" />
+                                </Link>
+                                {company.linkedin && (
+                                  <a
+                                    href={company.linkedin}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 mt-0.5"
+                                    title="View LinkedIn Company Page"
+                                  >
+                                    <ArrowUpRight className="h-3 w-3" />
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <div className="max-w-[200px]">
+                              {company.website ? (
+                                <a
+                                  href={company.website}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                  <span className="truncate">
+                                    {
+                                      company.website
+                                        .replace(/^https?:\/\/(www\.)?/, "")
+                                        .split("/")[0]
+                                    }
+                                  </span>
+                                  <ArrowUpRight className="h-3 w-3 flex-shrink-0" />
+                                </a>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <div
+                              className="max-w-[150px] truncate"
+                              title={company.industry || undefined}
+                            >
+                              {company.industry || (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            <div className="max-w-[100px] truncate">
+                              {company.size || (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            <div
+                              className="max-w-[150px] truncate"
+                              title={company.location || undefined}
+                            >
+                              {company.location || (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Badge variant="secondary">
+                                    {company.contacts?.length || 0}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {company.contacts?.map((contact) => (
+                                    <div key={contact.id}>
+                                      {contact.firstName} {contact.lastName}
+                                    </div>
+                                  ))}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <div className="max-w-[150px]">
+                              {company.assignedTo ? (
+                                <span
+                                  className="text-sm truncate block"
+                                  title={
+                                    company.assignedTo.name ||
+                                    company.assignedTo.email
+                                  }
+                                >
+                                  {company.assignedTo.name ||
+                                    company.assignedTo.email}
+                                </span>
+                              ) : (
+                                <span className="text-sm text-muted-foreground">
+                                  Unassigned
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => handleEdit(company)}
+                                >
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDelete(company.id)}
+                                  className="text-red-600"
+                                >
+                                  <Trash className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
                 </Table>
               </div>
             )}
@@ -334,17 +413,21 @@ export default function CompaniesPage() {
       <CompanyForm
         open={formOpen}
         onOpenChange={handleFormClose}
-        company={selectedCompany ? {
-          id: selectedCompany.id,
-          name: selectedCompany.name,
-          website: selectedCompany.website,
-          linkedinUrl: selectedCompany.linkedin,
-          industry: selectedCompany.industry,
-          size: selectedCompany.size,
-          location: selectedCompany.location,
-          assignedToId: selectedCompany.assignedTo?.id,
-          notes: selectedCompany.notes
-        } : undefined}
+        company={
+          selectedCompany
+            ? {
+                id: selectedCompany.id,
+                name: selectedCompany.name,
+                website: selectedCompany.website,
+                linkedinUrl: selectedCompany.linkedin,
+                industry: selectedCompany.industry,
+                size: selectedCompany.size,
+                location: selectedCompany.location,
+                assignedToId: selectedCompany.assignedTo?.id,
+                notes: selectedCompany.notes,
+              }
+            : undefined
+        }
         onSuccess={handleFormSuccess}
       />
     </div>
