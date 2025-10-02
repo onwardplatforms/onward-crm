@@ -246,8 +246,10 @@ export default function ContactDetailPage({ params }: PageProps) {
               </div>
             </CardContent>
           </Card>
+        </div>
 
-          {/* Related Activities */}
+        {/* Right column - Related */}
+        <div className="space-y-6">
           {contact.activities && contact.activities.length > 0 && (
             <Card>
               <CardHeader>
@@ -279,7 +281,6 @@ export default function ContactDetailPage({ params }: PageProps) {
             </Card>
           )}
 
-          {/* Related Deals */}
           {contact.deals && contact.deals.length > 0 && (
             <Card>
               <CardHeader>
@@ -312,10 +313,7 @@ export default function ContactDetailPage({ params }: PageProps) {
               </CardContent>
             </Card>
           )}
-        </div>
 
-        {/* Right column - Notes */}
-        <div>
           {contact.notes && (
             <Card className="h-fit">
               <CardHeader>
