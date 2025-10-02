@@ -3,7 +3,18 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { ArrowLeft, Building2, Globe, Linkedin, MapPin, Users, Briefcase, Edit, Trash, ArrowUpRight } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  Globe,
+  Linkedin,
+  MapPin,
+  Users,
+  Briefcase,
+  Edit,
+  Trash,
+  ArrowUpRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -141,80 +152,86 @@ export default function CompanyDetailPage({ params }: PageProps) {
         {/* Left column - Company Information and Related */}
         <div className="space-y-6">
           <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              Company Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {company.website && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Website</p>
-                <Link
-                  href={company.website}
-                  target="_blank"
-                  className="flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors"
-                >
-                  <Globe className="h-4 w-4" />
-                  {company.website}
-                </Link>
-              </div>
-            )}
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Company Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {company.website && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Website</p>
+                  <Link
+                    href={company.website}
+                    target="_blank"
+                    className="flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors"
+                  >
+                    <Globe className="h-4 w-4" />
+                    {company.website}
+                  </Link>
+                </div>
+              )}
 
-            {company.linkedinUrl && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">LinkedIn</p>
-                <Link
-                  href={company.linkedinUrl}
-                  target="_blank"
-                  className="flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors"
-                >
-                  <Linkedin className="h-4 w-4" />
-                  View LinkedIn Profile
-                </Link>
-              </div>
-            )}
+              {company.linkedinUrl && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">LinkedIn</p>
+                  <Link
+                    href={company.linkedinUrl}
+                    target="_blank"
+                    className="flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors"
+                  >
+                    <Linkedin className="h-4 w-4" />
+                    {company.linkedinUrl}
+                  </Link>
+                </div>
+              )}
 
-            {company.industry && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Industry</p>
-                <Badge variant="secondary">{company.industry}</Badge>
-              </div>
-            )}
+              {company.industry && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Industry</p>
+                  <Badge variant="secondary">{company.industry}</Badge>
+                </div>
+              )}
 
-            {company.size && (
+              {company.size && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Company Size
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    {company.size}
+                  </p>
+                </div>
+              )}
+
+              {company.location && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Location</p>
+                  <p className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    {company.location}
+                  </p>
+                </div>
+              )}
+
+              <Separator />
+
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Company Size</p>
-                <p className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  {company.size}
+                <p className="text-sm text-muted-foreground mb-1">Owner</p>
+                <p>
+                  {company.assignedTo?.name ||
+                    company.assignedTo?.email ||
+                    "Unassigned"}
                 </p>
               </div>
-            )}
 
-            {company.location && (
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Location</p>
-                <p className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  {company.location}
-                </p>
+                <p className="text-sm text-muted-foreground mb-1">Created</p>
+                <p>{format(new Date(company.createdAt), "PPP")}</p>
               </div>
-            )}
-
-            <Separator />
-
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Owner</p>
-              <p>{company.assignedTo?.name || company.assignedTo?.email || "Unassigned"}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Created</p>
-              <p>{format(new Date(company.createdAt), "PPP")}</p>
-            </div>
-          </CardContent>
+            </CardContent>
           </Card>
 
           {/* Related Contacts */}
@@ -239,10 +256,14 @@ export default function CompanyDetailPage({ params }: PageProps) {
                         <ArrowUpRight className="h-3 w-3" />
                       </p>
                       {contact.title && (
-                        <p className="text-sm text-muted-foreground">{contact.title}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {contact.title}
+                        </p>
                       )}
                       {contact.email && (
-                        <p className="text-sm text-muted-foreground">{contact.email}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {contact.email}
+                        </p>
                       )}
                     </Link>
                   ))}
@@ -274,7 +295,9 @@ export default function CompanyDetailPage({ params }: PageProps) {
                       </p>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <Badge variant="outline">{deal.stage}</Badge>
-                        {deal.value && <span>${deal.value.toLocaleString()}</span>}
+                        {deal.value && (
+                          <span>${deal.value.toLocaleString()}</span>
+                        )}
                       </div>
                     </Link>
                   ))}
@@ -292,7 +315,9 @@ export default function CompanyDetailPage({ params }: PageProps) {
                 <CardTitle>Notes</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="whitespace-pre-wrap">{formatMentionsForDisplay(company.notes)}</p>
+                <p className="whitespace-pre-wrap">
+                  {formatMentionsForDisplay(company.notes)}
+                </p>
               </CardContent>
             </Card>
           )}
