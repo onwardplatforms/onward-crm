@@ -3,7 +3,19 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { ArrowLeft, User, Mail, Phone, Linkedin, Briefcase, Building2, Edit, Trash, Calendar, ArrowUpRight } from "lucide-react";
+import {
+  ArrowLeft,
+  User,
+  Mail,
+  Phone,
+  Linkedin,
+  Briefcase,
+  Building2,
+  Edit,
+  Trash,
+  Calendar,
+  ArrowUpRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -146,89 +158,93 @@ export default function ContactDetailPage({ params }: PageProps) {
         {/* Left column - Contact Information and Related */}
         <div className="space-y-6">
           <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Contact Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {contact.email && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Email</p>
-                <a
-                  href={`mailto:${contact.email}`}
-                  className="flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors"
-                >
-                  <Mail className="h-4 w-4" />
-                  {contact.email}
-                </a>
-              </div>
-            )}
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Contact Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {contact.email && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Email</p>
+                  <a
+                    href={`mailto:${contact.email}`}
+                    className="flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors"
+                  >
+                    <Mail className="h-4 w-4" />
+                    {contact.email}
+                  </a>
+                </div>
+              )}
 
-            {contact.phone && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Phone</p>
-                <a
-                  href={`tel:${contact.phone}`}
-                  className="flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors"
-                >
-                  <Phone className="h-4 w-4" />
-                  {contact.phone}
-                </a>
-              </div>
-            )}
+              {contact.phone && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Phone</p>
+                  <a
+                    href={`tel:${contact.phone}`}
+                    className="flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors"
+                  >
+                    <Phone className="h-4 w-4" />
+                    {contact.phone}
+                  </a>
+                </div>
+              )}
 
-            {contact.linkedinUrl && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">LinkedIn</p>
-                <Link
-                  href={contact.linkedinUrl}
-                  target="_blank"
-                  className="flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors"
-                >
-                  <Linkedin className="h-4 w-4" />
-                  View LinkedIn Profile
-                </Link>
-              </div>
-            )}
+              {contact.linkedinUrl && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">LinkedIn</p>
+                  <Link
+                    href={contact.linkedinUrl}
+                    target="_blank"
+                    className="flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors"
+                  >
+                    <Linkedin className="h-4 w-4" />
+                    {contact.linkedinUrl}
+                  </Link>
+                </div>
+              )}
 
-            {contact.title && (
+              {contact.title && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Title</p>
+                  <p className="flex items-center gap-2">
+                    <Briefcase className="h-4 w-4" />
+                    {contact.title}
+                  </p>
+                </div>
+              )}
+
+              <Separator />
+
+              {contact.company && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Company</p>
+                  <Link
+                    href={`/company/${contact.company.id}`}
+                    className="flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors"
+                  >
+                    <Building2 className="h-4 w-4" />
+                    {contact.company.name}
+                    <ArrowUpRight className="h-3 w-3" />
+                  </Link>
+                </div>
+              )}
+
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Title</p>
-                <p className="flex items-center gap-2">
-                  <Briefcase className="h-4 w-4" />
-                  {contact.title}
+                <p className="text-sm text-muted-foreground mb-1">Owner</p>
+                <p>
+                  {contact.assignedTo?.name ||
+                    contact.assignedTo?.email ||
+                    "Unassigned"}
                 </p>
               </div>
-            )}
 
-            <Separator />
-
-            {contact.company && (
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Company</p>
-                <Link
-                  href={`/company/${contact.company.id}`}
-                  className="flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors"
-                >
-                  <Building2 className="h-4 w-4" />
-                  {contact.company.name}
-                  <ArrowUpRight className="h-3 w-3" />
-                </Link>
+                <p className="text-sm text-muted-foreground mb-1">Created</p>
+                <p>{format(new Date(contact.createdAt), "PPP")}</p>
               </div>
-            )}
-
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Owner</p>
-              <p>{contact.assignedTo?.name || contact.assignedTo?.email || "Unassigned"}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Created</p>
-              <p>{format(new Date(contact.createdAt), "PPP")}</p>
-            </div>
-          </CardContent>
+            </CardContent>
           </Card>
 
           {/* Related Activities */}
@@ -286,7 +302,9 @@ export default function ContactDetailPage({ params }: PageProps) {
                       </p>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <Badge variant="outline">{deal.stage}</Badge>
-                        {deal.value && <span>${deal.value.toLocaleString()}</span>}
+                        {deal.value && (
+                          <span>${deal.value.toLocaleString()}</span>
+                        )}
                       </div>
                     </Link>
                   ))}
@@ -304,7 +322,9 @@ export default function ContactDetailPage({ params }: PageProps) {
                 <CardTitle>Notes</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="whitespace-pre-wrap">{formatMentionsForDisplay(contact.notes)}</p>
+                <p className="whitespace-pre-wrap">
+                  {formatMentionsForDisplay(contact.notes)}
+                </p>
               </CardContent>
             </Card>
           )}
