@@ -25,7 +25,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search, MoreHorizontal, Pencil, Trash, ArrowUpRight } from "lucide-react";
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  Pencil,
+  Trash,
+  ArrowUpRight,
+} from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
 import { ContactForm } from "@/components/forms/contact-form";
@@ -69,7 +76,6 @@ export default function ContactsPage() {
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [workspaceId, setWorkspaceId] = useState<string>("");
   const [ownerFilter, setOwnerFilter] = useState<string>("all");
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
 
@@ -77,7 +83,7 @@ export default function ContactsPage() {
     try {
       const [contactsRes, activitiesRes] = await Promise.all([
         fetch("/api/contact"),
-        fetch("/api/activity")
+        fetch("/api/activity"),
       ]);
 
       if (!contactsRes.ok) throw new Error("Failed to fetch contacts");
@@ -106,7 +112,9 @@ export default function ContactsPage() {
         );
 
         if (currentWorkspace) {
-          const response = await fetch(`/api/workspaces/${currentWorkspace.id}/members`);
+          const response = await fetch(
+            `/api/workspaces/${currentWorkspace.id}/members`
+          );
           if (response.ok) {
             const data = await response.json();
             setTeamMembers(data.members || []);
@@ -121,15 +129,6 @@ export default function ContactsPage() {
   useEffect(() => {
     fetchContacts();
     fetchTeamMembers();
-    // Fetch current workspace
-    fetch("/api/workspaces")
-      .then(res => res.json())
-      .then(data => {
-        if (data.currentWorkspaceId) {
-          setWorkspaceId(data.currentWorkspaceId);
-        }
-      })
-      .catch(console.error);
   }, []);
 
   const handleEdit = (contact: Contact) => {
@@ -164,20 +163,21 @@ export default function ContactsPage() {
     fetchContacts();
   };
 
-  const filteredContacts = contacts.filter(
-    (contact) => {
-      const matchesSearch = contact.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        contact.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        contact.company?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredContacts = contacts.filter((contact) => {
+    const matchesSearch =
+      contact.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.company?.name?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesOwner = ownerFilter === "all" ||
-        (ownerFilter === "unassigned" ? !contact.assignedTo :
-        contact.assignedTo?.id === ownerFilter);
+    const matchesOwner =
+      ownerFilter === "all" ||
+      (ownerFilter === "unassigned"
+        ? !contact.assignedTo
+        : contact.assignedTo?.id === ownerFilter);
 
-      return matchesSearch && matchesOwner;
-    }
-  );
+    return matchesSearch && matchesOwner;
+  });
 
   // Helper function to get last contacted date for a contact (past activities only)
   const getLastContactedDate = (contactId: string) => {
@@ -185,17 +185,19 @@ export default function ContactsPage() {
     today.setHours(23, 59, 59, 999); // End of today
 
     // Filter activities that include this contact and are in the past
-    const contactActivities = activities.filter(a =>
-      a.contacts && Array.isArray(a.contacts) &&
-      a.contacts.some((c: { id: string }) => c.id === contactId) &&
-      new Date(a.date) <= today
+    const contactActivities = activities.filter(
+      (a) =>
+        a.contacts &&
+        Array.isArray(a.contacts) &&
+        a.contacts.some((c: { id: string }) => c.id === contactId) &&
+        new Date(a.date) <= today
     );
 
     if (contactActivities.length === 0) return null;
 
     // Sort by date descending and return the most recent
-    const sorted = contactActivities.sort((a, b) =>
-      new Date(b.date).getTime() - new Date(a.date).getTime()
+    const sorted = contactActivities.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
 
     return sorted[0];
@@ -207,17 +209,19 @@ export default function ContactsPage() {
     today.setHours(23, 59, 59, 999); // End of today
 
     // Filter activities that include this contact and are in the future
-    const contactActivities = activities.filter(a =>
-      a.contacts && Array.isArray(a.contacts) &&
-      a.contacts.some((c: { id: string }) => c.id === contactId) &&
-      new Date(a.date) > today
+    const contactActivities = activities.filter(
+      (a) =>
+        a.contacts &&
+        Array.isArray(a.contacts) &&
+        a.contacts.some((c: { id: string }) => c.id === contactId) &&
+        new Date(a.date) > today
     );
 
     if (contactActivities.length === 0) return null;
 
     // Sort by date ascending and return the nearest future activity
-    const sorted = contactActivities.sort((a, b) =>
-      new Date(a.date).getTime() - new Date(b.date).getTime()
+    const sorted = contactActivities.sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
 
     return sorted[0];
@@ -228,10 +232,12 @@ export default function ContactsPage() {
     const today = new Date();
     today.setHours(23, 59, 59, 999); // End of today
 
-    return activities.filter(a =>
-      a.contacts && Array.isArray(a.contacts) &&
-      a.contacts.some((c: { id: string }) => c.id === contactId) &&
-      new Date(a.date) <= today
+    return activities.filter(
+      (a) =>
+        a.contacts &&
+        Array.isArray(a.contacts) &&
+        a.contacts.some((c: { id: string }) => c.id === contactId) &&
+        new Date(a.date) <= today
     ).length;
   };
 
@@ -240,12 +246,18 @@ export default function ContactsPage() {
       <div className="flex-shrink-0 p-4 sm:p-6 pb-0">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Contacts</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Contacts
+            </h2>
             <p className="text-sm sm:text-base text-muted-foreground">
               Manage your contacts and their information
             </p>
           </div>
-          <Button onClick={() => setFormOpen(true)} size="sm" className="sm:size-default">
+          <Button
+            onClick={() => setFormOpen(true)}
+            size="sm"
+            className="sm:size-default"
+          >
             <Plus className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Add Contact</span>
             <span className="sm:hidden">Add</span>
@@ -297,14 +309,30 @@ export default function ContactsPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[200px] min-w-[200px]">Contact</TableHead>
-                        <TableHead className="hidden sm:table-cell w-[150px] min-w-[150px]">Title</TableHead>
-                        <TableHead className="hidden md:table-cell w-[100px] min-w-[100px] text-center">Last Contact</TableHead>
-                        <TableHead className="hidden md:table-cell w-[100px] min-w-[100px] text-center">Next Contact</TableHead>
-                        <TableHead className="hidden lg:table-cell w-[100px] min-w-[100px] text-center">Touchpoints</TableHead>
-                        <TableHead className="hidden xl:table-cell w-[200px] min-w-[200px]">Email</TableHead>
-                        <TableHead className="hidden 2xl:table-cell w-[140px] min-w-[140px]">Phone</TableHead>
-                        <TableHead className="hidden 2xl:table-cell w-[150px] min-w-[150px]">Owner</TableHead>
+                        <TableHead className="w-[200px] min-w-[200px]">
+                          Contact
+                        </TableHead>
+                        <TableHead className="hidden sm:table-cell w-[150px] min-w-[150px]">
+                          Title
+                        </TableHead>
+                        <TableHead className="hidden md:table-cell w-[100px] min-w-[100px] text-center">
+                          Last Contact
+                        </TableHead>
+                        <TableHead className="hidden md:table-cell w-[100px] min-w-[100px] text-center">
+                          Next Contact
+                        </TableHead>
+                        <TableHead className="hidden lg:table-cell w-[100px] min-w-[100px] text-center">
+                          Touchpoints
+                        </TableHead>
+                        <TableHead className="hidden xl:table-cell w-[200px] min-w-[200px]">
+                          Email
+                        </TableHead>
+                        <TableHead className="hidden 2xl:table-cell w-[140px] min-w-[140px]">
+                          Phone
+                        </TableHead>
+                        <TableHead className="hidden 2xl:table-cell w-[150px] min-w-[150px]">
+                          Owner
+                        </TableHead>
                         <TableHead className="w-[50px] min-w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -333,23 +361,34 @@ export default function ContactsPage() {
                           {/* Title - visible from 640px */}
                           <TableCell className="hidden sm:table-cell w-[150px] min-w-[150px]">
                             <span className="text-xs sm:text-sm truncate block max-w-[140px]">
-                              {contact.title || <span className="text-muted-foreground">-</span>}
+                              {contact.title || (
+                                <span className="text-muted-foreground">-</span>
+                              )}
                             </span>
                           </TableCell>
 
                           {/* Last Contact - visible from 768px */}
                           <TableCell className="hidden md:table-cell w-[100px] min-w-[100px] text-center">
                             {(() => {
-                              const lastActivity = getLastContactedDate(contact.id);
+                              const lastActivity = getLastContactedDate(
+                                contact.id
+                              );
                               if (!lastActivity) {
-                                return <span className="text-muted-foreground text-xs sm:text-sm">-</span>;
+                                return (
+                                  <span className="text-muted-foreground text-xs sm:text-sm">
+                                    -
+                                  </span>
+                                );
                               }
                               return (
                                 <Link
                                   href={`/activity?contactId=${contact.id}`}
                                   className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
                                 >
-                                  {format(new Date(lastActivity.date), "MMM d, yyyy")}
+                                  {format(
+                                    new Date(lastActivity.date),
+                                    "MMM d, yyyy"
+                                  )}
                                 </Link>
                               );
                             })()}
@@ -358,16 +397,25 @@ export default function ContactsPage() {
                           {/* Next Contact - visible from 768px */}
                           <TableCell className="hidden md:table-cell w-[100px] min-w-[100px] text-center">
                             {(() => {
-                              const nextActivity = getNextContactDate(contact.id);
+                              const nextActivity = getNextContactDate(
+                                contact.id
+                              );
                               if (!nextActivity) {
-                                return <span className="text-muted-foreground text-xs sm:text-sm">-</span>;
+                                return (
+                                  <span className="text-muted-foreground text-xs sm:text-sm">
+                                    -
+                                  </span>
+                                );
                               }
                               return (
                                 <Link
                                   href={`/activity?contactId=${contact.id}`}
                                   className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
                                 >
-                                  {format(new Date(nextActivity.date), "MMM d, yyyy")}
+                                  {format(
+                                    new Date(nextActivity.date),
+                                    "MMM d, yyyy"
+                                  )}
                                 </Link>
                               );
                             })()}
@@ -391,7 +439,9 @@ export default function ContactsPage() {
                                 {contact.email}
                               </a>
                             ) : (
-                              <span className="text-muted-foreground text-xs sm:text-sm">-</span>
+                              <span className="text-muted-foreground text-xs sm:text-sm">
+                                -
+                              </span>
                             )}
                           </TableCell>
 
@@ -405,7 +455,9 @@ export default function ContactsPage() {
                                 {formatPhoneNumber(contact.phone)}
                               </a>
                             ) : (
-                              <span className="text-muted-foreground text-xs sm:text-sm">-</span>
+                              <span className="text-muted-foreground text-xs sm:text-sm">
+                                -
+                              </span>
                             )}
                           </TableCell>
 
@@ -414,10 +466,13 @@ export default function ContactsPage() {
                             <div className="max-w-[140px]">
                               {contact.assignedTo ? (
                                 <span className="text-xs sm:text-sm truncate block">
-                                  {contact.assignedTo.name || contact.assignedTo.email}
+                                  {contact.assignedTo.name ||
+                                    contact.assignedTo.email}
                                 </span>
                               ) : (
-                                <span className="text-xs sm:text-sm text-muted-foreground">Unassigned</span>
+                                <span className="text-xs sm:text-sm text-muted-foreground">
+                                  Unassigned
+                                </span>
                               )}
                             </div>
                           </TableCell>
@@ -426,12 +481,18 @@ export default function ContactsPage() {
                           <TableCell className="w-[50px] min-w-[50px]">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                >
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleEdit(contact)}>
+                                <DropdownMenuItem
+                                  onClick={() => handleEdit(contact)}
+                                >
                                   <Pencil className="mr-2 h-4 w-4" />
                                   Edit
                                 </DropdownMenuItem>
@@ -459,18 +520,22 @@ export default function ContactsPage() {
       <ContactForm
         open={formOpen}
         onOpenChange={handleFormClose}
-        contact={selectedContact ? {
-          id: selectedContact.id,
-          firstName: selectedContact.firstName,
-          lastName: selectedContact.lastName,
-          email: selectedContact.email,
-          phone: selectedContact.phone,
-          linkedinUrl: selectedContact.linkedinUrl,
-          title: selectedContact.title,
-          companyId: selectedContact.company?.id,
-          assignedToId: selectedContact.assignedTo?.id,
-          notes: selectedContact.notes
-        } : undefined}
+        contact={
+          selectedContact
+            ? {
+                id: selectedContact.id,
+                firstName: selectedContact.firstName,
+                lastName: selectedContact.lastName,
+                email: selectedContact.email,
+                phone: selectedContact.phone,
+                linkedinUrl: selectedContact.linkedinUrl,
+                title: selectedContact.title,
+                companyId: selectedContact.company?.id,
+                assignedToId: selectedContact.assignedTo?.id,
+                notes: selectedContact.notes,
+              }
+            : undefined
+        }
         onSuccess={handleFormSuccess}
       />
     </div>
